@@ -5,7 +5,8 @@ import { ServiceCard, ServiceRow } from "@/components/salon/service-card";
 import { Photo } from "@/components/salon/photo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { services } from "@/lib/salon/data";
+import { services as seedServices } from "@/lib/salon/data";
+import { useSalonStore } from "@/lib/salon/store";
 import { categoryLabel, categoryOrder, formatDuration, formatPriceRange } from "@/lib/salon/format";
 import type { Category } from "@/lib/salon/types";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,8 @@ function ServicesPage() {
   const { category: initial } = Route.useSearch();
   const [category, setCategory] = useState<Category | "all">(initial ?? "all");
   const [q, setQ] = useState("");
+  const catalog = useSalonStore((s) => s.catalog);
+  const services = catalog.length ? catalog : seedServices;
   const searching = q.trim().length > 0;
   const filtered = services.filter((s) => {
     if (category !== "all" && s.category !== category) return false;

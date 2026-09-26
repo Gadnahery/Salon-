@@ -70,7 +70,7 @@ export function LandingPage() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <Link to="/app/book" className="hidden md:block">
+            <Link to="/app/services" className="hidden md:block">
               <Button size="md" variant={scrolled ? "primary" : "inverse"} className={scrolled ? "h-12 bg-ink text-white" : "h-12"}>
                 Book Appointment
               </Button>
@@ -115,7 +115,7 @@ export function LandingPage() {
               </a>
             ))}
           </nav>
-          <Link to="/app/book" className="mt-10 block" onClick={() => setMenu(false)}>
+          <Link to="/app/services" className="mt-10 block" onClick={() => setMenu(false)}>
             <Button className="h-14 w-full bg-ink text-white">Book Appointment</Button>
           </Link>
           <Link
@@ -166,7 +166,7 @@ export function LandingPage() {
             className="animate-fade-up mt-8 flex flex-wrap items-center gap-3"
             style={{ animationDelay: "280ms" }}
           >
-            <Link to="/app/book">
+            <Link to="/app/services">
               <Button variant="inverse" className="h-14 px-7">
                 Book an appointment
                 <ArrowRight className="size-4" strokeWidth={1.75} />
@@ -398,7 +398,7 @@ export function LandingPage() {
           <p className="mx-auto mt-5 max-w-md text-body text-surface/75">
             Choose your service, pick your time, and you're done.
           </p>
-          <Link to="/app/book" className="mt-10 inline-block">
+          <Link to="/app/services" className="mt-10 inline-block">
             <Button variant="inverse" className="h-14 px-8">
               Book an appointment
               <ArrowRight className="size-4" strokeWidth={1.75} />

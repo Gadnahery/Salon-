@@ -61,7 +61,7 @@ function BookPage() {
   const catalog = useSalonStore((s) => s.catalog);
   const settings = useSalonStore((s) => s.settings);
   const navigate = useNavigate();
-  const [needService, setNeedService] = useState(!serviceParam && !draft.serviceId);
+  const [needService, setNeedService] = useState(!serviceParam);
   const [step, setStep] = useState(0);
   const [paying, setPaying] = useState<"idle" | "waiting" | "confirming">("idle");
   const [payError, setPayError] = useState(false);
@@ -72,6 +72,10 @@ function BookPage() {
     if (serviceParam) {
       setDraft({ serviceId: serviceParam });
       setNeedService(false);
+      setStep(0);
+    } else {
+      // Fresh book from landing/menu: pick a service first (ignore stale draft)
+      setNeedService(true);
       setStep(0);
     }
   }, [serviceParam, setDraft]);
@@ -554,7 +558,7 @@ function BookPage() {
         <div className="mx-auto max-w-3xl">
           {needService || step < 4 ? (
             <Button
-              className="h-13 w-full"
+              className="h-13 w-full bg-ink text-white"
               disabled={!canContinue}
               onClick={() => {
                 if (needService) {
@@ -565,10 +569,18 @@ function BookPage() {
                 go(step + 1);
               }}
             >
-              {step === 3 ? "Review appointment" : "Continue"}
+              {needService
+                ? "Continue"
+                : step === 3
+                  ? "Review appointment"
+                  : "Continue"}
             </Button>
           ) : (
-            <Button className="h-13 w-full" disabled={!canContinue} onClick={() => void pay()}>
+            <Button
+              className="h-13 w-full bg-ink text-white"
+              disabled={!canContinue}
+              onClick={() => void pay()}
+            >
               Pay {formatTsh(deposit)}
             </Button>
           )}

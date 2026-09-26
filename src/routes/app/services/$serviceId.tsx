@@ -200,7 +200,7 @@ function ServiceDetail() {
               search={{ service: service.id }}
               onClick={() => setDraft({ serviceId: service.id, stylistId: "any" })}
             >
-              <Button className="h-13 min-w-36 px-6">Book now</Button>
+              <Button className="h-13 min-w-36 bg-ink px-6 text-white">Book now</Button>
             </Link>
           </div>
         </div>
