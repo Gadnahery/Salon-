@@ -25,6 +25,7 @@ import {
   seedReviews,
 } from "./seed";
 import { syncAppointment, syncAudit, syncCustomer, syncNotices, syncQueue as persistQueue, syncReview } from "./sync";
+import { pushServiceToSupabase, deleteServiceFromSupabase, pushStaffToSupabase, pushOfferToSupabase } from "./remote";
 import type {
   Appointment,
   AppointmentStatus,
@@ -878,11 +879,19 @@ export const useSalonStore = create<SalonState>()(
       },
       toggleOffer: (id, active) =>
         set({
-          offers: get().offers.map((o) => (o.id === id ? { ...o, active } : o)),
+          offers: get().offers.map((o) => {
+            const next = o.id === id ? { ...o, active } : o;
+            if (o.id === id) void pushOfferToSupabase(next);
+            return next;
+          }),
         }),
       addOffer: (o) =>
         set({
-          offers: [{ ...o, id: `off-${Date.now()}` }, ...get().offers],
+          offers: (() => {
+            const row = { ...o, id: `off-${Date.now()}` };
+            void pushOfferToSupabase(row);
+            return [row, ...get().offers];
+          })(),
           audit: [makeAudit(actorName(get().session), "created offer", o.title), ...get().audit],
         }),
       updateService: (id, patch) => {
@@ -893,6 +902,8 @@ export const useSalonStore = create<SalonState>()(
           audit: [makeAudit(actorName(get().session), "updated service", id), ...get().audit],
           toast: "Service saved",
         });
+        const saved = catalog.find((s) => s.id === id);
+        if (saved) void pushServiceToSupabase(saved);
       },
       addService: (service) => {
         const catalog = [service, ...get().catalog];
@@ -902,6 +913,7 @@ export const useSalonStore = create<SalonState>()(
           audit: [makeAudit(actorName(get().session), "created service", service.id), ...get().audit],
           toast: `${service.name} added`,
         });
+        void pushServiceToSupabase(service);
       },
       removeService: (id) => {
         const catalog = get().catalog.filter((s) => s.id !== id);
@@ -911,6 +923,7 @@ export const useSalonStore = create<SalonState>()(
           audit: [makeAudit(actorName(get().session), "removed service", id), ...get().audit],
           toast: "Service removed",
         });
+        void deleteServiceFromSupabase(id);
       },
       updateSettings: (patch) =>
         set({
@@ -950,6 +963,7 @@ export const useSalonStore = create<SalonState>()(
           audit: [makeAudit(actorName(get().session), "added staff", member.id), ...get().audit],
           toast: `${member.name} added`,
         });
+        void pushStaffToSupabase(member);
       },
       verifyPayment: (id) =>
         set({

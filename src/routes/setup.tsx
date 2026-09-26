@@ -12,7 +12,7 @@ function Setup() {
   const navigate = useNavigate();
   const [needed, setNeeded] = useState<boolean | null>(null);
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("gadnahery7@gmail.com");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

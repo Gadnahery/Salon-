@@ -6,6 +6,8 @@ import { NotifyPrompt } from "./notify-prompt";
 import { LogoWord } from "./logo";
 import { Button } from "@/components/ui/button";
 import { useSalonStore } from "@/lib/salon/store";
+import { pullCatalogFromSupabase } from "@/lib/salon/remote";
+import { setLiveServices, setLiveTeam } from "@/lib/salon/data";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -36,6 +38,17 @@ export function AppShell() {
   useEffect(() => {
     void (async () => {
       await useSalonStore.persist.rehydrate();
+      try {
+        const remote = await pullCatalogFromSupabase();
+        if (remote.services.length || remote.team.length) {
+          const catalog = remote.services.length ? remote.services : useSalonStore.getState().catalog;
+          const team = remote.team.length ? remote.team : useSalonStore.getState().team;
+          const offers = remote.offers.length ? remote.offers : useSalonStore.getState().offers;
+          setLiveServices(catalog);
+          setLiveTeam(team);
+          useSalonStore.setState({ catalog, team, offers });
+        }
+      } catch { /* local */ }
       useSalonStore.getState().seedIfNeeded();
     })();
   }, []);
