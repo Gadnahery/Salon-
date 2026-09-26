@@ -32,6 +32,8 @@ function AdminSettings() {
             mpesaEnabled: fd.get("mpesa") === "on",
             airtelEnabled: fd.get("airtel") === "on",
             tigoEnabled: fd.get("tigo") === "on",
+            cashierCanDiscount: fd.get("cashierDiscount") === "on",
+            maxDiscountPercent: Number(fd.get("maxDiscountPercent") || 0),
           });
         }}
       >
@@ -72,6 +74,19 @@ function AdminSettings() {
             <input type="checkbox" name="tigo" defaultChecked={settings.tigoEnabled} /> Tigo Pesa
           </label>
           <p className="mt-4 text-support text-muted">Mobile money is collected through HarakaPay USSD push. SMS, WhatsApp, and email stay unconnected until those providers are added.</p>
+        </section>
+
+        <section className="rounded-[24px] bg-surface p-5">
+          <p className="text-micro uppercase tracking-[0.16em] text-muted">Cashier</p>
+          <label className="mt-4 flex items-center gap-3 text-body">
+            <input type="checkbox" name="cashierDiscount" defaultChecked={settings.cashierCanDiscount} />
+            Allow staff to grant discounts at payment
+          </label>
+          <Label className="mt-4">Max discount %</Label>
+          <Input name="maxDiscountPercent" type="number" defaultValue={settings.maxDiscountPercent ?? 15} />
+          <p className="mt-2 text-support text-muted">
+            When enabled, reception/cashier can apply up to this percent on a booking balance before pushing USSD.
+          </p>
         </section>
 
         <section className="rounded-[24px] bg-surface p-5">

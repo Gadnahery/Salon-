@@ -251,21 +251,9 @@ function WalkInPage() {
               ))}
             </div>
             {payment !== "later" && (
-              <div className="mt-3 space-y-2">
-                {(["mpesa", "airtel", "tigo"] as PaymentMethod[]).map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setMethod(m)}
-                    className={cn(
-                      "w-full rounded-2xl border px-4 py-3 text-left text-body",
-                      method === m ? "border-ink bg-brand-soft" : "border-line",
-                    )}
-                  >
-                    {paymentLabel(m)}
-                  </button>
-                ))}
-              </div>
+              <p className="mt-3 text-support text-muted">
+                We&apos;ll push a USSD prompt to the customer&apos;s number. Network is detected automatically.
+              </p>
             )}
             {payMessage && <p className="mt-4 text-support text-muted">{payMessage}</p>}
           </>

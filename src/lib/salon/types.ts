@@ -90,6 +90,8 @@ export type Appointment = {
   startedAt?: string;
   completedAt?: string;
   paymentOrderId?: string;
+  discountPercent?: number;
+  discountReason?: string;
 };
 
 export type NoticeAudience = "customer" | "staff" | "admin";
@@ -239,6 +241,10 @@ export type SalonSettings = {
   mpesaEnabled: boolean;
   airtelEnabled: boolean;
   tigoEnabled: boolean;
+  /** When true, cashier/staff may apply a discount at payment time. */
+  cashierCanDiscount: boolean;
+  /** Max discount % a cashier may grant without further approval. */
+  maxDiscountPercent: number;
 };
 
 export type StaffNoticeKind =

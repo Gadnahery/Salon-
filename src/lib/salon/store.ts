@@ -81,6 +81,8 @@ const defaultSettings: SalonSettings = {
   mpesaEnabled: true,
   airtelEnabled: true,
   tigoEnabled: true,
+  cashierCanDiscount: true,
+  maxDiscountPercent: 15,
 };
 
 const defaultTemplates: NoticeTemplate[] = [
@@ -159,6 +161,7 @@ type SalonState = {
   upsertCustomer: (c: Partial<CustomerRecord> & { name: string; phone: string }) => CustomerRecord;
   addCustomerNote: (id: string, note: string) => void;
   collectBalance: (id: string, orderId?: string) => boolean;
+  applyDiscount: (id: string, percent: number, reason?: string) => boolean;
   markNoticesRead: (audience?: Notice["audience"]) => void;
   addNotice: (n: Omit<Notice, "id" | "time" | "read">) => void;
   setToast: (msg: string | null) => void;
@@ -757,6 +760,55 @@ export const useSalonStore = create<SalonState>()(
         });
         return appt;
       },
+
+      applyDiscount: (id, percent, reason) => {
+        const settings = get().settings;
+        if (!settings.cashierCanDiscount) {
+          set({ toast: "Discounts are disabled by admin" });
+          return false;
+        }
+        const max = settings.maxDiscountPercent ?? 0;
+        const pct = Math.max(0, Math.min(max, Math.round(percent)));
+        const current = get().appointments.find((a) => a.id === id);
+        if (!current) return false;
+        if (current.remaining <= 0 && current.status !== "payment_pending") {
+          set({ toast: "Nothing left to discount" });
+          return false;
+        }
+        const baseTotal = current.total;
+        const newTotal = Math.round(baseTotal * (1 - pct / 100));
+        const paid = Math.max(0, baseTotal - current.remaining);
+        const newRemaining = Math.max(0, newTotal - paid);
+        const appointments = get().appointments.map((a) =>
+          a.id === id
+            ? {
+                ...a,
+                total: newTotal,
+                remaining: newRemaining,
+                deposit: Math.min(a.deposit, newTotal),
+                discountPercent: pct,
+                discountReason: reason ?? "",
+              }
+            : a,
+        );
+        set({
+          appointments,
+          audit: [
+            makeAudit(
+              actorName(get().session),
+              "applied discount",
+              id,
+              `${current.total}`,
+              `${newTotal} (-${pct}%)`,
+            ),
+            ...get().audit,
+          ],
+          toast: pct ? `${pct}% discount applied` : "Discount cleared",
+        });
+        persistOps({ appointment: appointments.find((a) => a.id === id), audit: get().audit[0] });
+        return true;
+      },
+
       collectBalance: (id, orderId) => {
         const current = get().appointments.find((a) => a.id === id);
         if (!current || current.remaining <= 0) return false;

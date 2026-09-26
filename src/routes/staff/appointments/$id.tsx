@@ -24,11 +24,14 @@ function StaffAppointment() {
   const completeService = useSalonStore((s) => s.completeService);
   const cancelAppointment = useSalonStore((s) => s.cancelAppointment);
   const collectBalance = useSalonStore((s) => s.collectBalance);
+  const applyDiscount = useSalonStore((s) => s.applyDiscount);
+  const settings = useSalonStore((s) => s.settings);
   const markNoShow = useSalonStore((s) => s.markNoShow);
   const navigate = useNavigate();
   const [confirm, setConfirm] = useState<"start" | "complete" | "cancel" | "no_show" | null>(null);
   const [paying, setPaying] = useState<"idle" | "waiting" | "confirming">("idle");
   const [payMessage, setPayMessage] = useState("");
+  const [discountPct, setDiscountPct] = useState(0);
 
   if (!appt) {
     return (
@@ -130,15 +133,43 @@ function StaffAppointment() {
           <p className="mt-4 text-body tabular-nums">{formatTsh(appt.total)}</p>
           <p className="text-support text-muted">
             Deposit {formatTsh(appt.deposit)} · Balance {formatTsh(appt.remaining)}
+            {appt.discountPercent ? ` · ${appt.discountPercent}% off` : ""}
           </p>
+
+          {settings.cashierCanDiscount && appt.remaining > 0 && (
+            <div className="mt-4 rounded-2xl border border-line bg-bg p-3">
+              <p className="text-support font-medium">Discount (cashier)</p>
+              <p className="mt-1 text-support text-muted">
+                Admin allows up to {settings.maxDiscountPercent}%
+              </p>
+              <div className="mt-3 flex gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={settings.maxDiscountPercent}
+                  value={discountPct}
+                  onChange={(e) => setDiscountPct(Number(e.target.value) || 0)}
+                  className="h-11 w-24 rounded-2xl border border-line bg-surface px-3 text-body"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="h-11 flex-1"
+                  onClick={() => applyDiscount(appt.id, discountPct, "cashier")}
+                >
+                  Apply discount
+                </Button>
+              </div>
+            </div>
+          )}
+
           {appt.remaining > 0 && (
             <Button
-              variant="secondary"
-              className="mt-4 h-11 w-full"
+              className="mt-4 h-12 w-full"
               onClick={() => void collectNow()}
               disabled={paying !== "idle"}
             >
-              Collect balance
+              Push payment USSD · {formatTsh(appt.remaining)}
             </Button>
           )}
           {payMessage && <p className="mt-3 text-support text-muted">{payMessage}</p>}
