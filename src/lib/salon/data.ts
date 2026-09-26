@@ -287,12 +287,6 @@ export const services: Service[] = [
   },
 ];
 
-for (const s of services) {
-  s.priceMin = TEST_PRICE_TSH;
-  s.priceMax = TEST_PRICE_TSH;
-  s.depositPercent = 100;
-}
-
 export const stylists: Stylist[] = [
   {
     id: "sarah",

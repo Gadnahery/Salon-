@@ -159,25 +159,13 @@ function BookPage() {
     setPayError(true);
   }
 
-  async function recordDeposit() {
-    setPaying("confirming");
-    await wait(400);
-    const appt = confirm();
-    if (appt) {
-      void navigate({ to: "/app/book/success", search: { id: appt.id } });
-    } else {
-      setPaying("idle");
-      setPayError(true);
-    }
-  }
-
   const canContinue = needService
     ? !!draft.serviceId
     : (step === 0 && !!draft.stylistId) ||
       (step === 1 && !!draft.date) ||
       (step === 2 && !!draft.time) ||
       step === 3 ||
-      (step === 4 && !!draft.paymentMethod);
+      step === 4;
 
   const heading = needService
     ? "Which service?"
@@ -502,36 +490,17 @@ function BookPage() {
               </button>
             </div>
 
-            <p className="mt-8 text-body font-medium">Choose how to pay</p>
-            <div className="mt-3 space-y-2">
-              {(["mpesa", "airtel", "tigo"] as PaymentMethod[])
-                .filter((m) =>
-                  m === "mpesa" ? settings.mpesaEnabled : m === "airtel" ? settings.airtelEnabled : settings.tigoEnabled,
-                )
-                .map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setDraft({ paymentMethod: m })}
-                    className={cn(
-                      "flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-body",
-                      draft.paymentMethod === m ? "border-ink bg-brand-soft" : "border-line bg-surface",
-                    )}
-                  >
-                    {paymentLabel(m)}
-                    {draft.paymentMethod === m && <Check className="size-4" strokeWidth={1.75} />}
-                  </button>
-                ))}
-            </div>
+            <p className="mt-8 text-body font-medium">How you pay</p>
+            <p className="mt-2 text-support text-muted">
+              We&apos;ll send a mobile-money prompt to your phone number. The network is detected automatically from your number.
+            </p>
             {payError && (
-              <div className="mt-5">
-                <p className="text-body font-medium">Payment wasn't completed</p>
+              <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
+                <p className="text-body font-medium">Payment wasn&apos;t completed</p>
                 <p className="mt-1 text-support text-muted">
-                  {payMessage || "Your appointment hasn't been confirmed. Check the USSD prompt on your phone, then try again."}
+                  {payMessage ||
+                    "Your appointment hasn&apos;t been confirmed. Check the USSD prompt on your phone, then try again."}
                 </p>
-                <button type="button" className="mt-3 text-support" onClick={() => void recordDeposit()}>
-                  Record deposit and confirm anyway
-                </button>
               </div>
             )}
           </div>

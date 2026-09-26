@@ -444,11 +444,6 @@ export function LandingPage() {
         </div>
       </footer>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 px-5 py-3 backdrop-blur-xl md:hidden">
-        <Link to="/app/book" className="block">
-          <Button className="h-12 w-full">Book Appointment</Button>
-        </Link>
-      </div>
     </div>
   );
 }

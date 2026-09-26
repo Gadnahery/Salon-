@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { parseISO } from "date-fns";
-import { getService, SALON, setLiveServices, setLiveTeam, services as catalogSeed, team as teamSeed, gallery as gallerySeed, applyTestPrices } from "./data";
+import { getService, SALON, setLiveServices, setLiveTeam, services as catalogSeed, team as teamSeed, gallery as gallerySeed } from "./data";
 import { nextBookingId } from "./format";
 import {
   applyEvent,
@@ -235,7 +235,7 @@ export const useSalonStore = create<SalonState>()(
       lastCompletedId: null,
       seedIfNeeded: () => {
         const state = get();
-        const catalog = applyTestPrices(state.catalog.length ? state.catalog : catalogSeed);
+        const catalog = state.catalog.length ? state.catalog : catalogSeed;
         const team = state.team.length ? state.team : teamSeed;
         applyLive(catalog, team);
         if (state.seeded) {

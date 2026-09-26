@@ -24,14 +24,16 @@ export function Photo({
       <img
         src={src}
         alt={alt}
+        loading="lazy"
+        decoding="async"
         onLoad={() => setLoaded(true)}
         style={{
           objectPosition: position ?? "center",
           viewTransitionName: transitionName,
         }}
         className={cn(
-          "size-full object-cover photo-outline transition-[filter,opacity,transform] duration-500 ease-out",
-          loaded ? "opacity-100 blur-0 scale-100" : "opacity-70 blur-md scale-105",
+          "size-full object-cover photo-outline transition-opacity duration-200 ease-out",
+          loaded ? "opacity-100" : "opacity-0",
           imgClassName,
         )}
       />
