@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { Photo } from "@/components/salon/photo";
-import { offer, services } from "@/lib/salon/data";
+import { services } from "@/lib/salon/data";
 import { useSalonStore } from "@/lib/salon/store";
 
 export const Route = createFileRoute("/admin/marketing")({ component: AdminMarketing });
@@ -30,7 +30,11 @@ function AdminMarketing() {
         <ul className="mt-4 space-y-3">
           {offers.map((o) => (
             <li key={o.id} className="overflow-hidden rounded-[24px] bg-surface">
-              <Photo src={offer.image} alt="" className="h-36 w-full" />
+              {(() => {
+                const svc = services.find((s) => s.id === o.serviceId);
+                const src = svc?.image ?? "/images/hero.jpg";
+                return <Photo src={src} alt="" className="h-36 w-full" />;
+              })()}
               <div className="p-5">
                 <p className="text-section font-normal">{o.title}</p>
                 <p className="mt-1 text-body text-muted">{o.copy}</p>

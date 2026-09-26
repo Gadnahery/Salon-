@@ -1,10 +1,26 @@
 import { depositFor, priceFor } from "./rules";
-import type { PaymentMethod, PaymentRecord, PaymentStatus } from "@/lib/salon/types";
+import { applyDiscount as applyOfferDiscount } from "./marketing";
+import type { OfferRecord, PaymentMethod, PaymentRecord, PaymentStatus } from "@/lib/salon/types";
 
-export function quote(serviceId: string) {
-  const total = priceFor(serviceId);
+export function quote(
+  serviceId: string,
+  opts?: { offers?: OfferRecord[]; onDate?: string },
+) {
+  const base = priceFor(serviceId);
+  const offers = opts?.offers ?? [];
+  const discounted = applyOfferDiscount(base, offers, serviceId);
+  // applyOfferDiscount already filters by date via activeOfferFor default today;
+  // if a specific date is needed, callers can pre-filter offers.
+  const total = discounted.amount;
   const deposit = depositFor(serviceId, total);
-  return { total, deposit, remaining: Math.max(0, total - deposit) };
+  return {
+    total,
+    deposit,
+    remaining: Math.max(0, total - deposit),
+    discount: discounted.discount,
+    offer: discounted.offer,
+    base,
+  };
 }
 
 export function mapProviderStatus(status: string): PaymentStatus {

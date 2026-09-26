@@ -47,6 +47,7 @@ const STEP_TITLES = [
 function BookPage() {
   const { service: serviceParam, category } = Route.useSearch();
   const draft = useSalonStore((s) => s.draft);
+  const offers = useSalonStore((s) => s.offers);
   const setDraft = useSalonStore((s) => s.setDraft);
   const confirm = useSalonStore((s) => s.confirmBooking);
   const holdBooking = useSalonStore((s) => s.holdBooking);
@@ -91,7 +92,7 @@ function BookPage() {
   const people = service ? stylistsFor(service.category) : stylists;
   const listed = category ? serviceList.filter((s) => s.category === category) : serviceList;
 
-  const priced = service ? quote(service.id) : { total: 0, deposit: 0, remaining: 0 };
+  const priced = service ? quote(service.id, { offers }) : { total: 0, deposit: 0, remaining: 0, discount: 0, offer: null, base: 0 };
   const { total, deposit, remaining } = priced;
 
   function go(next: number) {
@@ -466,8 +467,14 @@ function BookPage() {
             <dl className="mt-6 space-y-3 border-t border-line pt-5 text-body">
               <div className="flex justify-between">
                 <dt className="text-muted">Service</dt>
-                <dd className="tabular-nums">{formatTsh(total)}</dd>
+                <dd className="tabular-nums">{formatTsh(priced.base ?? total)}</dd>
               </div>
+              {priced.discount ? (
+                <div className="flex justify-between text-success">
+                  <dt>{priced.offer?.title ?? "Offer"} (−{priced.offer?.discountPercent ?? 0}%)</dt>
+                  <dd className="tabular-nums">−{formatTsh(priced.discount)}</dd>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <dt className="text-muted">Deposit</dt>
                 <dd className="tabular-nums">{formatTsh(deposit)}</dd>

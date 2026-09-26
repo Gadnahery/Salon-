@@ -300,7 +300,7 @@ export const useSalonStore = create<SalonState>()(
               timeOff,
             })
           : draft.stylistId;
-        const { total, deposit, remaining } = quote(draft.serviceId);
+        const { total, deposit, remaining } = quote(draft.serviceId, { offers: get().offers });
         const id = nextBookingId(bookingCounter);
         const appt: Appointment = {
           id,
@@ -424,7 +424,7 @@ export const useSalonStore = create<SalonState>()(
               timeOff,
             })
           : draft.stylistId;
-        const { total, deposit, remaining } = quote(draft.serviceId);
+        const { total, deposit, remaining } = quote(draft.serviceId, { offers: get().offers });
         const id = nextBookingId(bookingCounter);
         const appt: Appointment = {
           id,
@@ -684,7 +684,7 @@ export const useSalonStore = create<SalonState>()(
         });
         const service = getService(input.serviceId);
         if (!service) return null;
-        const priced = quote(input.serviceId);
+        const priced = quote(input.serviceId, { offers: get().offers });
         const deposit = input.payment === "later" ? 0 : input.payment === "now" ? priced.total : priced.deposit;
         const remaining = Math.max(0, priced.total - deposit);
         const id = nextBookingId(get().bookingCounter);

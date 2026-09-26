@@ -7,7 +7,7 @@ import { StylistAvatar } from "@/components/salon/stylist-avatar";
 import { PayOverlay } from "@/components/salon/pay-overlay";
 import { categoryOrder, formatDuration, formatTsh, paymentLabel } from "@/lib/salon/format";
 import { categoryLabel } from "@/lib/salon/format";
-import { services, stylistsOnTeam } from "@/lib/salon/data";
+import { stylistsOnTeam } from "@/lib/salon/data";
 import { quote } from "@/lib/engines";
 import { collectUntilPaid } from "@/lib/payments/collect-client";
 import { effectiveShift, useSalonStore } from "@/lib/salon/store";
@@ -21,6 +21,7 @@ function WalkInPage() {
   const appointments = useSalonStore((s) => s.appointments);
   const staffStatus = useSalonStore((s) => s.staffStatus);
   const addWalkIn = useSalonStore((s) => s.addWalkIn);
+  const catalog = useSalonStore((s) => s.catalog);
   const queue = useSalonStore((s) => s.queue);
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -38,8 +39,8 @@ function WalkInPage() {
   const [payMessage, setPayMessage] = useState("");
 
   const digits = phone.replace(/\D/g, "");
-  const listed = services.filter((s) => s.category === category);
-  const service = services.find((s) => s.id === serviceId);
+  const listed = catalog.filter((s) => s.category === category);
+  const service = catalog.find((s) => s.id === serviceId);
   const team = stylistsOnTeam();
 
   const position = useMemo(() => queue.filter((q) => q.status === "waiting").length + 1, [queue]);
