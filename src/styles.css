@@ -233,3 +233,14 @@
   transform-origin: left center;
   animation: slide-progress 5s linear forwards;
 }
+
+/* Ensure primary/dark buttons always show light text (iOS-style CTAs) */
+@layer components {
+  .btn-primary-force,
+  button.bg-ink {
+    color: #ffffff !important;
+  }
+  button.bg-ink svg {
+    color: #ffffff !important;
+  }
+}

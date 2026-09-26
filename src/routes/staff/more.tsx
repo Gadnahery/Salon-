@@ -19,7 +19,7 @@ function StaffMore() {
     <main className="mx-auto max-w-lg px-5 pb-28 pt-6">
       <h1 className="text-title font-normal">More</h1>
       <div className="mt-6 flex items-center gap-4 rounded-[24px] bg-surface p-5">
-        <span className="flex size-14 items-center justify-center rounded-full bg-ink font-display text-lg text-surface">
+        <span className="flex size-14 items-center justify-center rounded-full bg-ink font-display text-lg text-white">
           {session.name[0]}
         </span>
         <div>

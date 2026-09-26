@@ -7,12 +7,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-ink text-white hover:bg-ink/90",
+        // Use explicit #fff so text never inherits ink/muted from parents
+        primary: "bg-ink text-white hover:bg-ink/90 btn-primary-force",
         secondary: "bg-surface text-ink border border-line hover:bg-bg",
         ghost: "bg-transparent text-ink hover:bg-brand-soft",
-        brand: "bg-brand text-white hover:bg-brand/90",
+        brand: "bg-brand text-white hover:bg-brand/90 btn-primary-force",
         inverse: "bg-surface text-ink hover:bg-surface/90",
-        quiet: "bg-transparent text-surface/90 hover:text-surface",
+        quiet: "bg-transparent text-white/90 hover:text-white",
         danger: "bg-transparent text-danger hover:bg-brand-soft",
       },
       size: {
@@ -35,8 +36,10 @@ export function Button({
   variant,
   size,
   static: isStatic,
+  style,
   ...props
 }: ButtonProps) {
+  const isDark = variant === "primary" || variant === "brand" || variant == null;
   return (
     <button
       className={cn(
@@ -44,6 +47,11 @@ export function Button({
         isStatic && "active:scale-100",
         className,
       )}
+      style={
+        isDark
+          ? { color: "#ffffff", ...style }
+          : style
+      }
       {...props}
     />
   );

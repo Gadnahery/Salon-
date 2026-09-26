@@ -72,7 +72,7 @@ export function AppShell() {
         <Link to="/app/help" className="mb-4 text-support text-muted hover:text-ink">
           Help
         </Link>
-        <Button className="w-full h-14" onClick={() => setBookOpen(true)}>
+        <Button className="h-14 w-full bg-ink text-white" onClick={() => setBookOpen(true)}>
           Book appointment
         </Button>
       </aside>

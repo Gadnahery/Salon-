@@ -30,7 +30,7 @@ export function ConfirmSheet({
           </Button>
           <Button
             variant={danger ? "danger" : "primary"}
-            className={danger ? "h-12 bg-danger text-surface hover:bg-danger/90" : "h-12"}
+            className={danger ? "h-12 bg-danger text-white hover:bg-danger/90" : "h-12"}
             onClick={onConfirm}
           >
             {confirmLabel}

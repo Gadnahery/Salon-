@@ -117,7 +117,7 @@ function ServiceDetail() {
         <h2 className="mt-8 text-body font-medium">Choose your stylist</h2>
         <div className="mt-4 flex gap-3 overflow-x-auto hide-scroll pb-1">
           <div className="flex w-28 shrink-0 flex-col items-center gap-2 rounded-[20px] border border-ink bg-brand-soft px-3 py-4 text-center">
-            <span className="flex size-14 items-center justify-center rounded-full bg-ink text-support text-surface">
+            <span className="flex size-14 items-center justify-center rounded-full bg-ink text-support text-white">
               Any
             </span>
             <p className="text-support font-medium">Any available</p>

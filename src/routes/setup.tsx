@@ -98,7 +98,7 @@ function Setup() {
             />
           </div>
           {error && <p className="rounded-2xl bg-brand-soft px-4 py-3 text-support text-brand">{error}</p>}
-          <Button type="submit" className="h-13 w-full" disabled={busy}>
+          <Button type="submit" className="h-13 w-full bg-ink text-white" disabled={busy}>
             {busy ? "Creating…" : "Create admin account"}
           </Button>
         </form>

@@ -111,7 +111,7 @@ function EnterPage() {
           {error && (
             <p className="rounded-2xl bg-brand-soft px-4 py-3 text-support text-brand">{error}</p>
           )}
-          <Button type="submit" className="h-13 w-full">
+          <Button type="submit" className="h-13 w-full bg-ink text-white">
             Continue
           </Button>
           <p className="text-center text-support text-muted">
