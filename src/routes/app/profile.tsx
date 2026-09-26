@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bell, ChevronRight, CircleHelp, CreditCard, Heart, Calendar, SlidersHorizontal } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Bell, ChevronRight, CircleHelp, CreditCard, Heart, Calendar, LogOut, SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useSalonStore } from "@/lib/salon/store";
 import { useHydrated } from "@/lib/utils";
@@ -19,18 +20,30 @@ function ProfilePage() {
   const hydrated = useHydrated();
   const profile = useSalonStore((s) => s.profile);
   const setProfile = useSalonStore((s) => s.setProfile);
-  const initial = profile.name.split(" ").map((p) => p[0]).join("").slice(0, 2);
+  const enterAs = useSalonStore((s) => s.enterAs);
+  const navigate = useNavigate();
+  const initial = profile.name
+    .split(" ")
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2);
+
+  function signOut() {
+    enterAs({ portal: "customer", actorId: "guest", name: "Guest", role: "customer" });
+    setProfile({ name: "", phone: "", mpesaPhone: "" });
+    void navigate({ to: "/enter", search: { as: "customer" } });
+  }
 
   return (
     <main className="mx-auto min-h-dvh max-w-lg px-5 pb-10 pt-6">
       <h1 className="text-title font-normal">Profile</h1>
       <div className="mt-8 flex items-center gap-4">
         <span className="flex size-16 items-center justify-center rounded-full bg-ink font-display text-xl text-surface">
-          {hydrated ? initial : "GH"}
+          {hydrated && initial ? initial : "—"}
         </span>
         <div>
-          <p className="text-section font-normal">{hydrated ? profile.name : ""}</p>
-          <p className="text-support text-muted">{hydrated ? profile.phone : ""}</p>
+          <p className="text-section font-normal">{hydrated ? profile.name || "Guest" : ""}</p>
+          <p className="text-support text-muted">{hydrated ? profile.phone || "No phone yet" : ""}</p>
         </div>
       </div>
       <div className="mt-8 space-y-4">
@@ -48,7 +61,7 @@ function ProfilePage() {
           <Input
             id="phone"
             value={hydrated ? profile.phone : ""}
-            onChange={(e) => setProfile({ phone: e.target.value })}
+            onChange={(e) => setProfile({ phone: e.target.value, mpesaPhone: e.target.value })}
             placeholder="+255 …"
           />
         </div>
@@ -64,6 +77,18 @@ function ProfilePage() {
           </li>
         ))}
       </ul>
+
+      <div className="mt-8">
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-13 w-full gap-2"
+          onClick={signOut}
+        >
+          <LogOut className="size-4" strokeWidth={1.75} />
+          Sign out
+        </Button>
+      </div>
       <p className="mt-10 text-center text-support text-muted">Salon · Dar es Salaam</p>
     </main>
   );

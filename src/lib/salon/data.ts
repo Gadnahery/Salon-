@@ -449,7 +449,7 @@ export const team: TeamMember[] = [
     rating: 5,
     role: "admin",
     phone: "+255 754 221 088",
-    email: "lewis@salon.co.tz",
+    email: "gadnahery7@gmail.com",
     serviceIds: services.map((s) => s.id),
     hours: [...WEEKDAY_HOURS, ...SUNDAY_OFF],
     active: true,
