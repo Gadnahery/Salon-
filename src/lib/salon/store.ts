@@ -167,6 +167,8 @@ type SalonState = {
   toggleOffer: (id: string, active: boolean) => void;
   addOffer: (o: Omit<OfferRecord, "id">) => void;
   updateService: (id: string, patch: Partial<Service>) => void;
+  addService: (service: Service) => void;
+  removeService: (id: string) => void;
   updateSettings: (patch: Partial<SalonSettings>) => void;
   updateTemplate: (id: string, patch: Partial<NoticeTemplate>) => void;
   setGalleryVisible: (id: string, visible: boolean) => void;
@@ -838,6 +840,24 @@ export const useSalonStore = create<SalonState>()(
           catalog,
           audit: [makeAudit(actorName(get().session), "updated service", id), ...get().audit],
           toast: "Service saved",
+        });
+      },
+      addService: (service) => {
+        const catalog = [service, ...get().catalog];
+        applyLive(catalog, get().team);
+        set({
+          catalog,
+          audit: [makeAudit(actorName(get().session), "created service", service.id), ...get().audit],
+          toast: `${service.name} added`,
+        });
+      },
+      removeService: (id) => {
+        const catalog = get().catalog.filter((s) => s.id !== id);
+        applyLive(catalog, get().team);
+        set({
+          catalog,
+          audit: [makeAudit(actorName(get().session), "removed service", id), ...get().audit],
+          toast: "Service removed",
         });
       },
       updateSettings: (patch) =>

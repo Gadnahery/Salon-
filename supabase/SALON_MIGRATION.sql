@@ -281,3 +281,22 @@ values
   ('test_price_tsh', '500'),
   ('payment_provider', 'harakapay')
 on conflict (key) do update set value = excluded.value;
+
+-- ============================================================
+-- Media (service images, gallery, staff photos)
+-- ============================================================
+
+create table if not exists salon_media (
+  id text primary key,
+  kind text not null check (kind in ('service', 'gallery', 'staff', 'customer_ref', 'promo')),
+  owner_id text,
+  url text not null,
+  alt text default '',
+  sort_order int default 0,
+  visible boolean default true,
+  created_at timestamptz default now() not null,
+  updated_at timestamptz default now() not null
+);
+
+create index if not exists salon_media_kind_idx on salon_media (kind);
+create index if not exists salon_media_owner_idx on salon_media (owner_id);
