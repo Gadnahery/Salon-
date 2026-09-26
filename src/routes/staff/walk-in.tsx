@@ -153,7 +153,7 @@ function WalkInPage() {
                   }}
                   className={cn(
                     "h-10 shrink-0 rounded-full px-4 text-support",
-                    category === c ? "bg-ink text-surface" : "border border-line",
+                    category === c ? "bg-ink text-white" : "border border-line",
                   )}
                 >
                   {categoryLabel(c)}

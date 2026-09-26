@@ -30,7 +30,7 @@ function AdminPayments() {
             onClick={() => setStatus(s)}
             className={cn(
               "h-10 rounded-full px-4 text-support capitalize",
-              status === s ? "bg-ink text-surface" : "border border-line",
+              status === s ? "bg-ink text-white" : "border border-line",
             )}
           >
             {s}
@@ -82,7 +82,7 @@ function AdminPayments() {
             </dl>
             <div className="mt-8 flex gap-2">
               {selected.status === "pending" && (
-                <button type="button" className="h-11 rounded-2xl bg-ink px-4 text-support text-surface" onClick={() => verifyPayment(selected.id)}>
+                <button type="button" className="h-11 rounded-2xl bg-ink px-4 text-support text-white" onClick={() => verifyPayment(selected.id)}>
                   Verify
                 </button>
               )}

@@ -34,7 +34,7 @@ function StaffCalendar() {
               key={v}
               type="button"
               onClick={() => setView(v)}
-              className={cn("h-9 rounded-full px-4 text-support capitalize", view === v && "bg-ink text-surface")}
+              className={cn("h-9 rounded-full px-4 text-support capitalize", view === v && "bg-ink text-white")}
             >
               {v}
             </button>

@@ -55,6 +55,7 @@ function BookPage() {
   const expireHeld = useSalonStore((s) => s.expireHeld);
   const attachPaymentOrder = useSalonStore((s) => s.attachPaymentOrder);
   const profile = useSalonStore((s) => s.profile);
+  const setProfile = useSalonStore((s) => s.setProfile);
   const appointments = useSalonStore((s) => s.appointments);
   const timeOff = useSalonStore((s) => s.timeOff);
   const catalog = useSalonStore((s) => s.catalog);
@@ -160,13 +161,16 @@ function BookPage() {
     setPayError(true);
   }
 
+  const hasCustomerCreds =
+    profile.name.trim().length >= 2 && profile.phone.replace(/\D/g, "").length >= 9;
+
   const canContinue = needService
     ? !!draft.serviceId
     : (step === 0 && !!draft.stylistId) ||
       (step === 1 && !!draft.date) ||
       (step === 2 && !!draft.time) ||
-      step === 3 ||
-      step === 4;
+      (step === 3 && hasCustomerCreds) ||
+      (step === 4 && hasCustomerCreds);
 
   const heading = needService
     ? "Which service?"
@@ -290,7 +294,7 @@ function BookPage() {
                     className={cn(
                       "flex h-24 w-[4.5rem] shrink-0 flex-col items-center justify-center rounded-[20px] border",
                       !open && "border-transparent bg-bg text-muted/40",
-                      open && selected && "border-ink bg-ink text-surface",
+                      open && selected && "border-ink bg-ink text-white",
                       open && !selected && "border-line bg-surface text-ink",
                     )}
                   >
@@ -347,7 +351,7 @@ function BookPage() {
                           className={cn(
                             "h-12 rounded-2xl border text-support tabular-nums",
                             disabled && "cursor-not-allowed border-transparent bg-transparent text-muted/35",
-                            !disabled && selected && "border-ink bg-ink text-surface",
+                            !disabled && selected && "border-ink bg-ink text-white",
                             !disabled && !selected && "border-line bg-surface text-ink",
                           )}
                         >
@@ -403,7 +407,7 @@ function BookPage() {
                         }
                         className={cn(
                           "h-10 rounded-full px-4 text-support",
-                          on ? "bg-ink text-surface" : "border border-line bg-surface text-ink",
+                          on ? "bg-ink text-white" : "border border-line bg-surface text-ink",
                         )}
                       >
                         {opt}
@@ -435,10 +439,42 @@ function BookPage() {
                 </label>
               </div>
             )}
-            <div className="rounded-[20px] bg-surface px-4 py-4">
-              <p className="text-support text-muted">Booking as</p>
-              <p className="mt-1 text-body">{profile.name}</p>
-              <p className="text-support text-muted">{profile.phone}</p>
+            <div className="rounded-[24px] border border-line bg-surface p-5">
+              <p className="text-body font-medium">Your details</p>
+              <p className="mt-1 text-support text-muted">
+                Required before payment. Existing customers: enter the same name and phone you used before.
+              </p>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <Label htmlFor="book-name">Full name</Label>
+                  <Input
+                    id="book-name"
+                    value={profile.name}
+                    onChange={(e) => setProfile({ name: e.target.value })}
+                    placeholder="Your name"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="book-phone">Phone number</Label>
+                  <Input
+                    id="book-phone"
+                    type="tel"
+                    value={profile.phone}
+                    onChange={(e) =>
+                      setProfile({ phone: e.target.value, mpesaPhone: e.target.value })
+                    }
+                    placeholder="+255 …"
+                    required
+                  />
+                </div>
+              </div>
+              <p className="mt-3 text-support text-muted">
+                Already signed in?{" "}
+                <a href="/enter?as=customer" className="text-ink underline-offset-2 hover:underline">
+                  Open customer sign in
+                </a>
+              </p>
             </div>
           </div>
         )}

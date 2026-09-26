@@ -532,7 +532,7 @@ function ReviewForm({ appointmentId }: { appointmentId: string }) {
             key={n}
             type="button"
             onClick={() => setRating(n)}
-            className={cn("size-11 rounded-full border text-body", n <= rating ? "border-ink bg-ink text-surface" : "border-line")}
+            className={cn("size-11 rounded-full border text-body", n <= rating ? "border-ink bg-ink text-white" : "border-line")}
           >
             {n}
           </button>
@@ -651,7 +651,7 @@ function RescheduleSheet({
                       }}
                       className={cn(
                         "flex h-20 w-14 shrink-0 flex-col items-center justify-center rounded-2xl border",
-                        date === key ? "border-ink bg-ink text-surface" : "border-line",
+                        date === key ? "border-ink bg-ink text-white" : "border-line",
                       )}
                     >
                       <span className="text-micro uppercase">{formatDate(d, "EEE")}</span>
@@ -673,7 +673,7 @@ function RescheduleSheet({
                       className={cn(
                         "h-11 rounded-xl border text-support tabular-nums",
                         disabled && "border-transparent text-muted/35",
-                        !disabled && time === t && "border-ink bg-ink text-surface",
+                        !disabled && time === t && "border-ink bg-ink text-white",
                         !disabled && time !== t && "border-line",
                       )}
                     >

@@ -91,7 +91,7 @@ export function AppShell() {
                 type="button"
                 aria-label="Book appointment"
                 onClick={() => setBookOpen(true)}
-                className="absolute -top-7 flex size-14 items-center justify-center rounded-full bg-ink text-surface shadow-float transition-transform duration-150 ease-out active:scale-[0.96]"
+                className="absolute -top-7 flex size-14 items-center justify-center rounded-full bg-ink text-white shadow-float transition-transform duration-150 ease-out active:scale-[0.96]"
               >
                 <Plus className="size-6" strokeWidth={1.75} />
               </button>
@@ -107,7 +107,7 @@ export function AppShell() {
 
       {toast && (
         <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-5 lg:bottom-8">
-          <p className="rounded-full bg-ink px-4 py-2.5 text-support text-surface shadow-float">
+          <p className="rounded-full bg-ink px-4 py-2.5 text-support text-white shadow-float">
             {toast}
           </p>
         </div>

@@ -28,7 +28,7 @@ function AdminGallery() {
             onClick={() => setCat(c)}
             className={cn(
               "h-10 shrink-0 rounded-full px-4 text-support",
-              cat === c ? "bg-ink text-surface" : "border border-line",
+              cat === c ? "bg-ink text-white" : "border border-line",
             )}
           >
             {c}

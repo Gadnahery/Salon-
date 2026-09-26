@@ -45,7 +45,7 @@ function AppHome() {
           className="relative flex size-11 items-center justify-center overflow-hidden rounded-full bg-surface"
         >
           {hydrated ? (
-            <span className="flex size-11 items-center justify-center rounded-full bg-ink font-display text-sm text-surface">
+            <span className="flex size-11 items-center justify-center rounded-full bg-ink font-display text-sm text-white">
               {firstName?.[0] ?? "G"}
             </span>
           ) : (

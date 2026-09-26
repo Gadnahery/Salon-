@@ -125,7 +125,7 @@ function EnterPage() {
         {authEnabled ? (
           <Link
             to="/login"
-            className="mt-3 flex w-full items-center justify-between rounded-[24px] bg-ink px-5 py-4 text-left text-surface"
+            className="mt-3 flex w-full items-center justify-between rounded-[24px] bg-ink px-5 py-4 text-left text-white"
           >
             <span>
               <span className="block text-body font-medium">Staff sign in</span>
@@ -164,7 +164,7 @@ function EnterPage() {
                     onClick={() =>
                       go({ portal: "admin", actorId: m.id, name: m.name, role: m.role as StaffRole }, "/admin")
                     }
-                    className="flex w-full items-center gap-4 rounded-[24px] bg-ink px-4 py-3 text-left text-surface"
+                    className="flex w-full items-center gap-4 rounded-[24px] bg-ink px-4 py-3 text-left text-white"
                   >
                     <span className="flex size-10 items-center justify-center rounded-full bg-surface/15 font-display">
                       {m.initials}

@@ -38,7 +38,7 @@ function ProfilePage() {
     <main className="mx-auto min-h-dvh max-w-lg px-5 pb-10 pt-6">
       <h1 className="text-title font-normal">Profile</h1>
       <div className="mt-8 flex items-center gap-4">
-        <span className="flex size-16 items-center justify-center rounded-full bg-ink font-display text-xl text-surface">
+        <span className="flex size-16 items-center justify-center rounded-full bg-ink font-display text-xl text-white">
           {hydrated && initial ? initial : "—"}
         </span>
         <div>

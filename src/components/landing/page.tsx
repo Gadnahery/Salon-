@@ -71,7 +71,7 @@ export function LandingPage() {
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/app/book" className="hidden md:block">
-              <Button size="md" variant={scrolled ? "primary" : "inverse"} className="h-12">
+              <Button size="md" variant={scrolled ? "primary" : "inverse"} className={scrolled ? "h-12 bg-ink text-white" : "h-12"}>
                 Book Appointment
               </Button>
             </Link>
@@ -116,7 +116,17 @@ export function LandingPage() {
             ))}
           </nav>
           <Link to="/app/book" className="mt-10 block" onClick={() => setMenu(false)}>
-            <Button className="h-14 w-full">Book Appointment</Button>
+            <Button className="h-14 w-full bg-ink text-white">Book Appointment</Button>
+          </Link>
+          <Link
+            to="/enter"
+            search={{ as: "customer" }}
+            className="mt-3 block"
+            onClick={() => setMenu(false)}
+          >
+            <Button variant="secondary" className="h-14 w-full">
+              Customer sign in
+            </Button>
           </Link>
           <Link to="/enter" className="mt-4 block text-center text-support text-muted" onClick={() => setMenu(false)}>
             Staff & Admin
@@ -192,7 +202,7 @@ export function LandingPage() {
               onClick={() => setCategory(c)}
               className={cn(
                 "h-10 shrink-0 rounded-full px-4 text-support capitalize transition-colors duration-150",
-                category === c ? "bg-ink text-surface" : "border border-line bg-transparent text-ink",
+                category === c ? "bg-ink text-white" : "border border-line bg-transparent text-ink",
               )}
             >
               {c === "all" ? "All" : c}
@@ -432,7 +442,10 @@ export function LandingPage() {
           <div className="mx-auto max-w-6xl px-5 pb-10 text-support text-muted md:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span>© 2026 Salon</span>
-            <span className="flex gap-4">
+            <span className="flex flex-wrap gap-4">
+              <Link to="/enter" search={{ as: "customer" }} className="hover:text-ink">
+                Customer sign in
+              </Link>
               <Link to="/enter" search={{ as: "staff" }} className="hover:text-ink">
                 Staff
               </Link>

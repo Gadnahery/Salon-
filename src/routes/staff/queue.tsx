@@ -51,7 +51,7 @@ function StaffQueue() {
             onClick={() => setTab(t)}
             className={cn(
               "h-10 shrink-0 rounded-full px-4 text-support capitalize",
-              tab === t ? "bg-ink text-surface" : "border border-line",
+              tab === t ? "bg-ink text-white" : "border border-line",
             )}
           >
             {t.replace("_", " ")}

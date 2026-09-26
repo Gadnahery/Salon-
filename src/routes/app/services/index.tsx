@@ -68,7 +68,7 @@ function ServicesPage() {
               onClick={() => setCategory(c)}
               className={cn(
                 "h-10 shrink-0 rounded-full px-4 text-support transition-colors duration-150",
-                category === c ? "bg-ink text-surface" : "border border-line bg-transparent text-ink",
+                category === c ? "bg-ink text-white" : "border border-line bg-transparent text-ink",
               )}
             >
               {c === "all" ? "All" : categoryLabel(c)}

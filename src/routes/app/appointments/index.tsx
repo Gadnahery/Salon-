@@ -35,7 +35,7 @@ function AppointmentsPage() {
             onClick={() => setTab(t)}
             className={cn(
               "h-10 rounded-full px-4 text-support capitalize",
-              tab === t ? "bg-ink text-surface" : "border border-line bg-transparent text-ink",
+              tab === t ? "bg-ink text-white" : "border border-line bg-transparent text-ink",
             )}
           >
             {t}

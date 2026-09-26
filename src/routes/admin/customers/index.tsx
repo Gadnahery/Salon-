@@ -43,7 +43,7 @@ function AdminCustomers() {
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`h-10 rounded-full px-4 text-support capitalize ${tab === t ? "bg-ink text-surface" : "border border-line"}`}
+            className={`h-10 rounded-full px-4 text-support capitalize ${tab === t ? "bg-ink text-white" : "border border-line"}`}
           >
             {t === "all" ? "All customers" : t}
           </button>

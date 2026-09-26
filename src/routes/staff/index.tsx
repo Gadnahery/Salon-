@@ -67,7 +67,7 @@ function StaffToday() {
           </p>
         </div>
         <div className="text-right">
-          <span className="flex size-11 items-center justify-center rounded-full bg-ink font-display text-sm text-surface">
+          <span className="flex size-11 items-center justify-center rounded-full bg-ink font-display text-sm text-white">
             {session.name[0]}
           </span>
           <div className="mt-2">
@@ -84,7 +84,7 @@ function StaffToday() {
             onClick={() => setStaffStatus(session.actorId, s.id)}
             className={cn(
               "h-10 shrink-0 rounded-full px-4 text-support",
-              staffStatus[session.actorId] === s.id ? "bg-ink text-surface" : "border border-line",
+              staffStatus[session.actorId] === s.id ? "bg-ink text-white" : "border border-line",
             )}
           >
             {s.label}

@@ -82,7 +82,7 @@ export function AdminShell() {
         <p className="mt-2 text-micro uppercase tracking-[0.16em] text-muted">Admin</p>
         <NavList pathname={pathname} />
         <div className="mt-auto flex items-center gap-3 px-2 pt-4">
-          <span className="flex size-9 items-center justify-center rounded-full bg-ink font-display text-sm text-surface">
+          <span className="flex size-9 items-center justify-center rounded-full bg-ink font-display text-sm text-white">
             L
           </span>
           <div>
@@ -123,7 +123,7 @@ export function AdminShell() {
 
       {toast && (
         <div className="fixed inset-x-0 bottom-8 z-50 flex justify-center px-5">
-          <p className="rounded-full bg-ink px-4 py-2.5 text-support text-surface shadow-float">{toast}</p>
+          <p className="rounded-full bg-ink px-4 py-2.5 text-support text-white shadow-float">{toast}</p>
         </div>
       )}
     </div>
