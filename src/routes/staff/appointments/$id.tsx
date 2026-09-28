@@ -303,8 +303,7 @@ function StaffAppointment() {
           setConfirm(null);
         }}
       />
-      {paying !== "idle" && (
-        <section className="mx-5 mt-4 rounded-[24px] bg-surface p-5">
+      <section className="mx-5 mt-4 rounded-[24px] bg-surface p-5">
         <p className="text-micro uppercase tracking-[0.16em] text-muted">Before / after photos</p>
         <label className="mt-3 flex items-start gap-3 text-support">
           <input
@@ -357,20 +356,21 @@ function StaffAppointment() {
         )}
       </section>
 
-      <PayOverlay
-        phase={paying}
-        phone={appt.customerPhone}
-        amount={appt.remaining}
-        onCancel={() => {
-          payAbortRef.current?.abort();
-          setPaying("idle");
-          setPayMessage(
-            pendingOrderId
-              ? "Cancelled. Decline open USSD on the phone so you are not charged twice."
-              : "Payment cancelled.",
-          );
-        }}
-      />
+      {paying !== "idle" && (
+        <PayOverlay
+          phase={paying}
+          phone={appt.customerPhone}
+          amount={appt.remaining}
+          onCancel={() => {
+            payAbortRef.current?.abort();
+            setPaying("idle");
+            setPayMessage(
+              pendingOrderId
+                ? "Cancelled. Decline open USSD on the phone so you are not charged twice."
+                : "Payment cancelled.",
+            );
+          }}
+        />
       )}
     </main>
   );

@@ -64,7 +64,6 @@ function BookPage() {
   const session = useSalonStore((s) => s.session);
   const appointments = useSalonStore((s) => s.appointments);
   const joinWaitlist = useSalonStore((s) => s.joinWaitlist);
-  const session = useSalonStore((s) => s.session);
   const [waitListed, setWaitListed] = useState(false);
   const timeOff = useSalonStore((s) => s.timeOff);
   const catalog = useSalonStore((s) => s.catalog);
