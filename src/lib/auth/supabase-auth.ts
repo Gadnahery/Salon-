@@ -252,74 +252,148 @@ export async function ensureStaffAccount(input: {
   return { ok: true };
 }
 
+function mapStaffRow(r: {
+  id: string;
+  email?: string | null;
+  name: string;
+  role: string;
+  team_member_id?: string | null;
+}): StaffAccount {
+  const role = (["admin", "manager", "receptionist", "stylist"].includes(r.role)
+    ? r.role
+    : "stylist") as StaffRole;
+  return {
+    id: r.id,
+    email: r.email || "",
+    name: r.name,
+    role,
+    teamMemberId: r.team_member_id ?? r.id,
+  };
+}
+
+/**
+ * Resolve staff/admin for the signed-in Supabase user.
+ * Matches by auth user id first, then by email (legacy rows like id "lewis").
+ * When email matches, re-keys the row to the auth user id so future logins work.
+ */
 export async function fetchMyStaffAccount(
   accessToken?: string,
   userId?: string,
+  emailHint?: string,
 ): Promise<StaffAccount | null> {
   const session = loadSession();
   const token = accessToken || session?.access_token || anon();
   const uid = userId || session?.user?.id;
-  if (!uid) return null;
+  const email = (emailHint || session?.user?.email || "").trim().toLowerCase();
+  if (!uid && !email) return null;
 
-  // Prefer salon_staff (open RLS) — primary store after Supabase Auth switch.
-  const res = await fetch(
-    `${base()}/rest/v1/salon_staff?id=eq.${encodeURIComponent(uid)}&active=eq.true&select=id,email,name,role`,
-    {
-      headers: {
-        apikey: anon(),
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-  if (res.ok) {
-    const rows = (await res.json()) as Array<{
-      id: string;
-      email: string | null;
-      name: string;
-      role: string;
-    }>;
-    const r = rows[0];
-    if (r) {
-      const role = (["admin", "manager", "receptionist", "stylist"].includes(r.role)
-        ? r.role
-        : "stylist") as StaffRole;
+  const headers = {
+    apikey: anon(),
+    Authorization: `Bearer ${token}`,
+  };
+
+  // 1) By auth user id
+  if (uid) {
+    const res = await fetch(
+      `${base()}/rest/v1/salon_staff?id=eq.${encodeURIComponent(uid)}&active=eq.true&select=id,email,name,role`,
+      { headers },
+    );
+    if (res.ok) {
+      const rows = (await res.json()) as Array<{
+        id: string;
+        email: string | null;
+        name: string;
+        role: string;
+      }>;
+      if (rows[0]) return mapStaffRow(rows[0]);
+    }
+
+    const resAcc = await fetch(
+      `${base()}/rest/v1/salon_staff_accounts?id=eq.${encodeURIComponent(uid)}&active=eq.true&select=id,email,name,role,team_member_id`,
+      { headers: { apikey: anon(), Authorization: `Bearer ${anon()}` } },
+    );
+    if (resAcc.ok) {
+      const rows = (await resAcc.json()) as Array<{
+        id: string;
+        email: string;
+        name: string;
+        role: StaffRole;
+        team_member_id: string | null;
+      }>;
+      if (rows[0]) return mapStaffRow(rows[0]);
+    }
+  }
+
+  // 2) By email (seeded "lewis" / "admin-profile" rows)
+  if (email) {
+    const res = await fetch(
+      `${base()}/rest/v1/salon_staff?email=eq.${encodeURIComponent(email)}&active=eq.true&select=id,email,name,role`,
+      { headers },
+    );
+    if (res.ok) {
+      const rows = (await res.json()) as Array<{
+        id: string;
+        email: string | null;
+        name: string;
+        role: string;
+      }>;
+      const r = rows.find((x) => x.role === "admin") || rows[0];
+      if (r && uid) {
+        // Re-key to auth user id so id-based lookups succeed next time
+        await ensureStaffAccount({
+          userId: uid,
+          email,
+          name: r.name,
+          role: (["admin", "manager", "receptionist", "stylist"].includes(r.role)
+            ? r.role
+            : "stylist") as StaffRole,
+          accessToken: token,
+        });
+        return mapStaffRow({ ...r, id: uid, email });
+      }
+      if (r) return mapStaffRow(r);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * After a successful password login: if no staff row yet but email is the
+ * known owner email, promote this auth user to admin on salon_staff.
+ */
+export async function claimStaffAfterLogin(input: {
+  userId: string;
+  email: string;
+  name?: string;
+  accessToken: string;
+}): Promise<StaffAccount | null> {
+  const email = input.email.trim().toLowerCase();
+  let account = await fetchMyStaffAccount(input.accessToken, input.userId, email);
+  if (account) return account;
+
+  // Owner email always allowed to claim admin once signed in via Supabase Auth
+  const ownerEmails = ["gadnahery7@gmail.com"];
+  if (ownerEmails.includes(email)) {
+    const ensured = await ensureStaffAccount({
+      userId: input.userId,
+      email,
+      name: input.name || "Admin",
+      role: "admin",
+      accessToken: input.accessToken,
+    });
+    if (ensured.ok) {
       return {
-        id: r.id,
-        email: r.email || session?.user?.email || "",
-        name: r.name,
-        role,
-        teamMemberId: r.id,
+        id: input.userId,
+        email,
+        name: input.name || "Admin",
+        role: "admin",
+        teamMemberId: input.userId,
       };
     }
   }
 
-  // Fallback: salon_staff_accounts if RLS policies exist
-  const res2 = await fetch(
-    `${base()}/rest/v1/salon_staff_accounts?id=eq.${encodeURIComponent(uid)}&active=eq.true&select=id,email,name,role,team_member_id`,
-    {
-      headers: {
-        apikey: anon(),
-        Authorization: `Bearer ${anon()}`,
-      },
-    },
-  );
-  if (!res2.ok) return null;
-  const rows2 = (await res2.json()) as Array<{
-    id: string;
-    email: string;
-    name: string;
-    role: StaffRole;
-    team_member_id: string | null;
-  }>;
-  const r2 = rows2[0];
-  if (!r2) return null;
-  return {
-    id: r2.id,
-    email: r2.email,
-    name: r2.name,
-    role: r2.role,
-    teamMemberId: r2.team_member_id,
-  };
+  return null;
 }
 
 export async function countActiveAdmins(): Promise<number> {
@@ -356,17 +430,28 @@ export async function bootstrapAdminWithSupabase(input: {
   password: string;
   name: string;
 }): Promise<{ ok: true; account: StaffAccount } | { ok: false; error: string }> {
-  const admins = await countActiveAdmins();
-  if (admins > 0) {
-    // Allow re-claim if this email can sign in and becomes admin
-    const signed = await supabaseSignIn(input);
-    if (signed.session) {
-      const existing = await fetchMyStaffAccount(signed.session.access_token, signed.session.user.id);
-      if (existing?.role === "admin") {
-        return { ok: true, account: existing };
-      }
+  // Always prefer sign-in + claim (handles seeded lewis/admin-profile rows)
+  const signedEarly = await supabaseSignIn(input);
+  if (signedEarly.session) {
+    const claimed = await claimStaffAfterLogin({
+      userId: signedEarly.session.user.id,
+      email: input.email,
+      name: input.name,
+      accessToken: signedEarly.session.access_token,
+    });
+    if (claimed?.role === "admin") {
+      return { ok: true, account: claimed };
     }
-    return { ok: false, error: "An admin already exists. Sign in at /login instead." };
+  }
+
+  const admins = await countActiveAdmins();
+  if (admins > 0 && !signedEarly.session) {
+    return {
+      ok: false,
+      error:
+        signedEarly.error ||
+        "An admin profile already exists. Sign in at /login with the correct password.",
+    };
   }
 
   let userId = "";

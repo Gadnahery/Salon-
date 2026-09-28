@@ -3,7 +3,7 @@ import { useState } from "react";
 import { LogoWord } from "@/components/salon/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
-import { fetchMyStaffAccount, supabaseSignIn } from "@/lib/auth/supabase-auth";
+import { claimStaffAfterLogin, supabaseSignIn } from "@/lib/auth/supabase-auth";
 import { useSalonStore } from "@/lib/salon/store";
 
 export const Route = createFileRoute("/login")({ component: Login });
@@ -26,7 +26,12 @@ function Login() {
       setError(signInError ?? "Could not sign in. Check your email and password.");
       return;
     }
-    const account = await fetchMyStaffAccount(session.access_token, session.user.id);
+    const account = await claimStaffAfterLogin({
+      userId: session.user.id,
+      email: session.user.email || email,
+      name: session.user.user_metadata?.name,
+      accessToken: session.access_token,
+    });
     setBusy(false);
     if (!account) {
       setError("Signed in, but this account is not staff/admin. Run /setup first.");
