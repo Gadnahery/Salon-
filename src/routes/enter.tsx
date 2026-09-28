@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { LogoWord } from "@/components/salon/logo";
 import { useSalonStore } from "@/lib/salon/store";
+import { isValidLocalTzPhone, toLocalTzPhone } from "@/lib/salon/format";
 import { cn } from "@/lib/utils";
 
 type Search = { as?: "staff" | "admin" | "customer" };
@@ -33,13 +34,13 @@ function EnterPage() {
   function continueAsCustomer(e: React.FormEvent) {
     e.preventDefault();
     const n = name.trim();
-    const p = phone.trim();
+    const p = toLocalTzPhone(phone);
     if (!n || n.length < 2) {
       setError("Please enter your name.");
       return;
     }
     if (!p || p.replace(/\D/g, "").length < 9) {
-      setError("Please enter a valid phone number.");
+      setError("Use a Tanzanian number like 07XXXXXXXX or 06XXXXXXXX.");
       return;
     }
     setError(null);
@@ -86,8 +87,10 @@ function EnterPage() {
               id="customer-phone"
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+255 …"
+              onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\s]/g, ""))}
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="07XXXXXXXX"
               autoComplete="tel"
               required
             />

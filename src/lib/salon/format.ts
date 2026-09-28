@@ -205,3 +205,23 @@ export const TIME_GROUPS: { label: string; slots: string[] }[] = [
 export const categoryOrder: Category[] = ["hair", "nails", "makeup", "treatments"];
 
 export const SENSITIVITY_OPTIONS = ["Sensitive scalp", "Light tension", "First time", "Other"];
+
+/** Normalize any TZ mobile input to local 07XXXXXXXX / 06XXXXXXXX (no +255). */
+export function toLocalTzPhone(input: string): string {
+  let d = input.replace(/\D/g, "");
+  if (d.startsWith("255") && d.length >= 12) d = `0${d.slice(3)}`;
+  if (d.length === 9 && (d.startsWith("6") || d.startsWith("7"))) d = `0${d}`;
+  if (d.startsWith("0") && d.length > 10) d = d.slice(0, 10);
+  return d;
+}
+
+/** Display phone as 07XX XXX XXX for UI (never +255). */
+export function displayLocalPhone(input: string): string {
+  const p = toLocalTzPhone(input);
+  if (p.length === 10) return `${p.slice(0, 4)} ${p.slice(4, 7)} ${p.slice(7)}`;
+  return p || input;
+}
+
+export function isValidLocalTzPhone(input: string): boolean {
+  return /^0[67]\d{8}$/.test(toLocalTzPhone(input));
+}

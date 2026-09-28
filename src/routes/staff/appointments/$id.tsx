@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmSheet } from "@/components/salon/confirm-sheet";
 import { Photo } from "@/components/salon/photo";
@@ -34,6 +34,8 @@ function StaffAppointment() {
   const [confirm, setConfirm] = useState<"start" | "complete" | "cancel" | "no_show" | null>(null);
   const [paying, setPaying] = useState<"idle" | "sending" | "waiting" | "confirming">("idle");
   const [payMessage, setPayMessage] = useState("");
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const payAbortRef = useRef<AbortController | null>(null);
   const [discountPct, setDiscountPct] = useState(0);
 
   if (!appt) {
@@ -64,6 +66,9 @@ function StaffAppointment() {
   async function collectNow() {
     setPayMessage("");
     setPaying("sending");
+    payAbortRef.current?.abort();
+    const ac = new AbortController();
+    payAbortRef.current = ac;
     const result = await collectUntilPaid({
       phone: booking.customerPhone,
       amount: booking.remaining,
@@ -73,10 +78,15 @@ function StaffAppointment() {
       customerName: booking.customerName,
       method: booking.paymentMethod,
       kind: "balance",
-    }),
-      onPromptSent: () => setPaying("waiting"),
-    };
+      existingOrderId: pendingOrderId || booking.paymentOrderId || undefined,
+      signal: ac.signal,
+      onPromptSent: (oid) => {
+        setPendingOrderId(oid);
+        setPaying("waiting");
+      },
+    });
     if (result.ok) {
+      setPendingOrderId(null);
       setPaying("confirming");
       collectBalance(booking.id, result.orderId);
       setPaying("idle");
@@ -350,8 +360,13 @@ function StaffAppointment() {
         phone={appt.customerPhone}
         amount={appt.remaining}
         onCancel={() => {
+          payAbortRef.current?.abort();
           setPaying("idle");
-          setPayMessage("Payment cancelled.");
+          setPayMessage(
+            pendingOrderId
+              ? "Cancelled. Decline open USSD on the phone so you are not charged twice."
+              : "Payment cancelled.",
+          );
         }}
       />
       )}

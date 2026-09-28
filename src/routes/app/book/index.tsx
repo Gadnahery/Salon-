@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format as formatDate, isToday, isTomorrow } from "date-fns";
 import { Check } from "lucide-react";
@@ -18,6 +18,9 @@ import {
   nextOpenDays,
   paymentLabel,
   SENSITIVITY_OPTIONS,
+  toLocalTzPhone,
+  isValidLocalTzPhone,
+  displayLocalPhone,
 } from "@/lib/salon/format";
 import { availableSlots, dateHasRealAvailability, quote } from "@/lib/engines";
 import { useSalonStore } from "@/lib/salon/store";
@@ -69,6 +72,8 @@ function BookPage() {
   const [paying, setPaying] = useState<"idle" | "sending" | "waiting" | "confirming">("idle");
   const [payError, setPayError] = useState(false);
   const [payMessage, setPayMessage] = useState("");
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const payAbortRef = useRef<AbortController | null>(null);
   const [policyOpen, setPolicyOpen] = useState(false);
 
   useEffect(() => {
@@ -125,9 +130,24 @@ function BookPage() {
 
   async function pay() {
     if (!service) return;
+    if (paying !== "idle") return; // hard block double tap
     setPayError(false);
     setPayMessage("");
     setPaying("sending");
+    payAbortRef.current?.abort();
+    const ac = new AbortController();
+    payAbortRef.current = ac;
+
+    const phone = toLocalTzPhone(profile.mpesaPhone || profile.phone);
+    if (!isValidLocalTzPhone(phone)) {
+      setPaying("idle");
+      setPayError(true);
+      setPayMessage("Enter a phone like 07XXXXXXXX before paying.");
+      return;
+    }
+    setProfile({ phone, mpesaPhone: phone });
+
+    // If we already sent USSD for a held booking, only check status — never second push
     const held = holdBooking();
     if (!held) {
       setPaying("idle");
@@ -135,7 +155,11 @@ function BookPage() {
       setPayMessage("We couldn't hold this time. Choose another slot.");
       return;
     }
-    const phone = profile.mpesaPhone || profile.phone;
+    const existing =
+      pendingOrderId ||
+      held.paymentOrderId ||
+      undefined;
+
     const result = await collectUntilPaid({
       phone,
       amount: deposit,
@@ -145,9 +169,16 @@ function BookPage() {
       customerName: held.customerName,
       method: draft.paymentMethod,
       kind: "deposit",
-      onPromptSent: () => setPaying("waiting"),
+      existingOrderId: existing,
+      signal: ac.signal,
+      onPromptSent: (orderId) => {
+        setPendingOrderId(orderId);
+        attachPaymentOrder(held.id, orderId);
+        setPaying("waiting");
+      },
     });
     if (result.ok) {
+      setPendingOrderId(null);
       setPaying("confirming");
       await wait(400);
       const appt = confirmHeld(held.id, result.orderId);
@@ -171,7 +202,7 @@ function BookPage() {
   }
 
   const hasCustomerCreds =
-    profile.name.trim().length >= 2 && profile.phone.replace(/\D/g, "").length >= 9;
+    profile.name.trim().length >= 2 && isValidLocalTzPhone(profile.phone);
 
   const canContinue = needService
     ? !!draft.serviceId
@@ -489,10 +520,17 @@ function BookPage() {
                     id="book-phone"
                     type="tel"
                     value={profile.phone}
-                    onChange={(e) =>
-                      setProfile({ phone: e.target.value, mpesaPhone: e.target.value })
-                    }
-                    placeholder="+255 …"
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9+\s]/g, "");
+                      setProfile({ phone: v, mpesaPhone: v });
+                    }}
+                    onBlur={() => {
+                      const v = toLocalTzPhone(profile.phone);
+                      if (v) setProfile({ phone: v, mpesaPhone: v });
+                    }}
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="07XXXXXXXX"
                     required
                   />
                 </div>
@@ -581,7 +619,7 @@ function BookPage() {
                     void pay();
                   }}
                 >
-                  Try payment again
+                  {pendingOrderId ? "Check payment status" : "Try payment again"}
                 </Button>
               </div>
             )}
@@ -631,9 +669,14 @@ function BookPage() {
           phone={profile.mpesaPhone || profile.phone}
           amount={deposit}
           onCancel={() => {
+            payAbortRef.current?.abort();
             setPaying("idle");
             setPayError(true);
-            setPayMessage("Cancelled. If USSD never appeared, check the phone number and try again.");
+            setPayMessage(
+              pendingOrderId
+                ? "Cancelled waiting. Decline any open USSD on your phone. Tap Try again only checks status — it will not send a new charge."
+                : "Cancelled before USSD was sent.",
+            );
           }}
         />
       )}

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { ScreenHeader } from "@/components/salon/screen-header";
@@ -7,6 +7,7 @@ import { StylistAvatar } from "@/components/salon/stylist-avatar";
 import { PayOverlay } from "@/components/salon/pay-overlay";
 import { categoryOrder, formatDuration, formatTsh, paymentLabel } from "@/lib/salon/format";
 import { categoryLabel } from "@/lib/salon/format";
+import { toLocalTzPhone, isValidLocalTzPhone } from "@/lib/salon/format";
 import { stylistsOnTeam } from "@/lib/salon/data";
 import { quote } from "@/lib/engines";
 import { collectUntilPaid } from "@/lib/payments/collect-client";
@@ -37,6 +38,8 @@ function WalkInPage() {
   const [doneId, setDoneId] = useState<string | null>(null);
   const [paying, setPaying] = useState<"idle" | "sending" | "waiting" | "confirming">("idle");
   const [payMessage, setPayMessage] = useState("");
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const payAbortRef = useRef<AbortController | null>(null);
 
   const digits = phone.replace(/\D/g, "");
   const listed = catalog.filter((s) => s.category === category);
@@ -72,8 +75,17 @@ function WalkInPage() {
     if (!appt) return;
     if (amount > 0) {
       setPaying("sending");
+      payAbortRef.current?.abort();
+      const ac = new AbortController();
+      payAbortRef.current = ac;
+      const localPhone = toLocalTzPhone(phone);
+      if (!isValidLocalTzPhone(localPhone)) {
+        setPaying("idle");
+        setPayMessage("Use a phone like 07XXXXXXXX.");
+        return;
+      }
       const result = await collectUntilPaid({
-        phone: phone.trim(),
+        phone: localPhone,
         amount,
         description: `Salon walk-in ${appt.id}`,
         bookingId: appt.id,
@@ -81,7 +93,12 @@ function WalkInPage() {
         customerName: appt.customerName,
         method,
         kind: payment === "now" ? "full" : "deposit",
-        onPromptSent: () => setPaying("waiting"),
+        existingOrderId: pendingOrderId || undefined,
+        signal: ac.signal,
+        onPromptSent: (oid) => {
+          setPendingOrderId(oid);
+          setPaying("waiting");
+        },
       });
       if (!result.ok) {
         setPaying("idle");
@@ -127,7 +144,7 @@ function WalkInPage() {
             <Label className="mt-6">Customer phone</Label>
             <Input
               inputMode="tel"
-              placeholder="+255"
+              placeholder="07XXXXXXXX"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
@@ -292,8 +309,13 @@ function WalkInPage() {
           phone={phone}
           amount={service ? (payment === "now" ? quote(service.id).total : quote(service.id).deposit) : 0}
           onCancel={() => {
+            payAbortRef.current?.abort();
             setPaying("idle");
-            setPayMessage("Payment cancelled.");
+            setPayMessage(
+              pendingOrderId
+                ? "Cancelled. Decline open USSD on the phone. Next try only checks status."
+                : "Payment cancelled.",
+            );
           }}
         />
       )}

@@ -62,7 +62,8 @@ function ProfilePage() {
             id="phone"
             value={hydrated ? profile.phone : ""}
             onChange={(e) => setProfile({ phone: e.target.value, mpesaPhone: e.target.value })}
-            placeholder="+255 …"
+            placeholder="07XXXXXXXX"
+            inputMode="tel"
           />
         </div>
       </div>
