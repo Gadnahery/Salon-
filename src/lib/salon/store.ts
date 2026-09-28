@@ -65,8 +65,8 @@ const emptyDraft: BookingDraft = {
 
 const defaultSession: Session = {
   portal: "customer",
-  actorId: CUSTOMER_ID,
-  name: "Gadna Henry",
+  actorId: "guest",
+  name: "Guest",
   role: "customer",
 };
 
@@ -175,6 +175,9 @@ type SalonState = {
   removeService: (id: string) => void;
   updateSettings: (patch: Partial<SalonSettings>) => void;
   updateTemplate: (id: string, patch: Partial<NoticeTemplate>) => void;
+  addGalleryItem: (item: GalleryItem) => void;
+  updateGalleryItem: (id: string, patch: Partial<GalleryItem>) => void;
+  removeGalleryItem: (id: string) => void;
   setGalleryVisible: (id: string, visible: boolean) => void;
   reorderQueue: (appointmentId: string, dir: -1 | 1) => void;
   addTimeOff: (staffId: string, date: string, reason: string) => void;
@@ -241,36 +244,37 @@ export const useSalonStore = create<SalonState>()(
       lastCompletedId: null,
       seedIfNeeded: () => {
         const state = get();
-        const catalog = state.catalog.length ? state.catalog : catalogSeed;
-        const team = state.team.length ? state.team : teamSeed;
+        // No mock appointments/customers/payments — only keep catalog/team from remote hydrate or empty.
+        const catalog = state.catalog;
+        const team = state.team;
         applyLive(catalog, team);
-        if (state.seeded) {
-          if (catalog !== state.catalog) set({ catalog });
-          return;
-        }
-        const appointments = seedAppointments();
-        applyLive(catalog, team);
+        if (state.seeded) return;
         set({
-          appointments,
-          customers: seedCustomers(),
-          notices: seedNotices(),
-          payments: seedPayments(appointments),
-          reviews: seedReviews(),
-          offers: seedOffers(),
-          audit: seedAudit(),
-          queue: rebuildQueue(appointments, []),
+          appointments: [],
+          customers: [],
+          notices: [],
+          payments: [],
+          reviews: [],
+          offers: state.offers ?? [],
+          audit: [],
+          queue: [],
           catalog,
           team,
-          galleryItems: defaultGallery(),
+          galleryItems: state.galleryItems ?? [],
           templates: defaultTemplates,
-          settings: defaultSettings,
-          bookingCounter: 48310,
+          settings: state.settings ?? defaultSettings,
+          bookingCounter: 1000,
           seeded: true,
+          // Reset demo customer identity if still on legacy seed id
+          session:
+            state.session.actorId === "cust-gadna" || state.session.actorId === "guest"
+              ? { portal: "customer", actorId: "guest", name: "Guest", role: "customer" }
+              : state.session,
+          profile:
+            state.profile?.name === "Gadna Henry"
+              ? { name: "", phone: "", mpesaPhone: "" }
+              : state.profile,
         });
-        const next = get();
-        for (const c of next.customers) persistOps({ customer: c });
-        for (const a of next.appointments.slice(0, 20)) persistOps({ appointment: a });
-        persistOps({ queue: next.queue, notices: next.notices.slice(0, 8) });
       },
       enterAs: (session) => set({ session }),
       setStaffStatus: (id, status) =>
@@ -936,6 +940,17 @@ export const useSalonStore = create<SalonState>()(
           templates: get().templates.map((t) => (t.id === id ? { ...t, ...patch } : t)),
           toast: "Template saved",
         }),
+      addGalleryItem: (item) => {
+        set({ galleryItems: [...get().galleryItems, item] });
+      },
+      updateGalleryItem: (id, patch) => {
+        set({
+          galleryItems: get().galleryItems.map((g) => (g.id === id ? { ...g, ...patch } : g)),
+        });
+      },
+      removeGalleryItem: (id) => {
+        set({ galleryItems: get().galleryItems.filter((g) => g.id !== id) });
+      },
       setGalleryVisible: (id, visible) =>
         set({
           galleryItems: get().galleryItems.map((g) => (g.id === id ? { ...g, visible } : g)),
@@ -981,7 +996,7 @@ export const useSalonStore = create<SalonState>()(
         }),
     }),
     {
-      name: "uls-salon-ops-v4",
+      name: "uls-salon-ops-v5",
       skipHydration: true,
       partialize: (s) => ({
         seeded: s.seeded,

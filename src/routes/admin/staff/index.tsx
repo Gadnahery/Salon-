@@ -4,8 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { StatusPill } from "@/components/salon/status-pill";
 import { StylistAvatar } from "@/components/salon/stylist-avatar";
-import { authEnabled } from "@/lib/auth/client";
-import { createStaffAccountFn, listStaffAccountsFn, type StaffAccount, type StaffRole as LoginRole } from "@/lib/auth/staff-actions";
+import {
+  ensureStaffAccount,
+  type StaffAccount,
+  type StaffRole as LoginRole,
+  supabaseSignUp,
+} from "@/lib/auth/supabase-auth";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/salon/supabase";
 import { services } from "@/lib/salon/data";
 import { todayKey } from "@/lib/engines/schedule";
 import { effectiveShift, useSalonStore } from "@/lib/salon/store";
@@ -25,8 +30,24 @@ function AdminStaff() {
   const today = todayKey();
 
   useEffect(() => {
-    if (!authEnabled) return;
-    listStaffAccountsFn()
+    const base = SUPABASE_URL;
+    const anon = SUPABASE_ANON_KEY;
+    fetch(`${base}/rest/v1/salon_staff?active=eq.true&select=id,email,name,role&order=name.asc`, {
+      headers: { apikey: anon, Authorization: `Bearer ${anon}` },
+    })
+      .then(async (r) => {
+        if (!r.ok) return [];
+        const rows = (await r.json()) as Array<{ id: string; email: string | null; name: string; role: string }>;
+        return rows
+          .filter((x) => x.email && ["admin", "manager", "receptionist", "stylist"].includes(x.role))
+          .map((x) => ({
+            id: x.id,
+            email: x.email || "",
+            name: x.name,
+            role: x.role as LoginRole,
+            teamMemberId: x.id,
+          }));
+      })
       .then(setLogins)
       .catch(() => setLogins([]));
   }, []);
@@ -63,7 +84,7 @@ function AdminStaff() {
         })}
       </ul>
 
-      {authEnabled && (
+      {true && (
         <section className="mt-10">
           <div className="flex items-end justify-between">
             <div>
@@ -100,19 +121,38 @@ function AdminStaff() {
               e.preventDefault();
               setLoginError(null);
               const fd = new FormData(e.currentTarget);
-              createStaffAccountFn({
-                data: {
-                  name: String(fd.get("name")),
-                  email: String(fd.get("email")),
-                  password: String(fd.get("password")),
-                  role: String(fd.get("role")) as LoginRole,
-                },
-              })
-                .then((created) => {
-                  setLogins((prev) => [...(prev ?? []), created]);
+              const name = String(fd.get("name"));
+              const email = String(fd.get("email"));
+              const password = String(fd.get("password"));
+              const role = String(fd.get("role")) as LoginRole;
+              void (async () => {
+                try {
+                  const up = await supabaseSignUp({ email, password, name });
+                  if (up.error && !up.userId) {
+                    setLoginError(up.error);
+                    return;
+                  }
+                  const userId = up.userId;
+                  const ensured = await ensureStaffAccount({
+                    userId,
+                    email,
+                    name,
+                    role,
+                    accessToken: up.session?.access_token,
+                  });
+                  if (!ensured.ok) {
+                    setLoginError(ensured.error || "Could not save staff profile.");
+                    return;
+                  }
+                  setLogins((prev) => [
+                    ...(prev ?? []).filter((x) => x.id !== userId),
+                    { id: userId, email, name, role, teamMemberId: userId },
+                  ]);
                   setLoginOpen(false);
-                })
-                .catch((err) => setLoginError(err instanceof Error ? err.message : "Could not create the login."));
+                } catch (err) {
+                  setLoginError(err instanceof Error ? err.message : "Could not create the login.");
+                }
+              })();
             }}
           >
             <p className="text-section font-normal">Create staff login</p>

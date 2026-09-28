@@ -4,7 +4,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { SalonBoot } from "@/lib/salon/boot";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Salon";
+const APP_NAME = "Booking";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -15,7 +15,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Salon in Dar es Salaam. Book hair, nails, makeup, and treatments around your schedule.",
+          "Appointment booking system. Book services around your schedule.",
       },
       { name: "theme-color", content: "#F7F6F3" },
     ],
