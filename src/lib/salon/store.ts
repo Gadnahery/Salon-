@@ -393,6 +393,22 @@ export const useSalonStore = create<SalonState>()(
             },
           ],
         });
+        // Real Web Push to staff/admin devices (works when app is closed if subscribed)
+        void import("@/lib/notifications/push-actions")
+          .then(({ sendStaffPushFn }) =>
+            sendStaffPushFn({
+              data: {
+                title: "New booking request",
+                body: `${appt.customerName} · ${service.name} · ${appt.date} ${appt.time}`,
+                url: `/staff/appointments/${id}`,
+                tag: `req-${id}`,
+                audience: "both",
+              },
+            }),
+          )
+          .catch(() => {
+            /* push optional */
+          });
         return appt;
       },
       confirmHeld: (id, orderId) => {

@@ -3,6 +3,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { setLiveServices, setLiveTeam } from "./data";
 import { pullCatalogFromSupabase } from "./remote";
 import { useSalonStore } from "./store";
+import { registerBookingServiceWorker } from "@/lib/notifications/push-client";
 
 /**
  * Boot: rehydrate local store, prefer live Supabase catalog, never inject demo bookings.

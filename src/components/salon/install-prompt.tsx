@@ -6,6 +6,7 @@ import {
   notificationSupported,
   requestNotifyPermission,
 } from "@/lib/notifications/web-push";
+import { subscribeStaffPush } from "@/lib/notifications/push-client";
 
 type Portal = "staff" | "admin";
 
@@ -91,6 +92,8 @@ export function InstallPrompt({ portal }: { portal: Portal }) {
     if (notificationSupported() && getNotifyPermission() === "default") {
       await requestNotifyPermission();
     }
+    // Register Web Push so alerts work when app is closed
+    void subscribeStaffPush({ portal });
     if (deferred) {
       try {
         await deferred.prompt();

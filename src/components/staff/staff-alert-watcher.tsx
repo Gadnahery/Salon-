@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { showBrowserNotification, getNotifyPermission } from "@/lib/notifications/web-push";
+import { subscribeStaffPush, registerBookingServiceWorker } from "@/lib/notifications/push-client";
 import { useSalonStore } from "@/lib/salon/store";
 
 const SEEN_KEY = "booking-staff-seen-requests";
@@ -33,6 +34,12 @@ export function StaffAlertWatcher() {
 
   useEffect(() => {
     if (session.portal !== "staff" && session.portal !== "admin") return;
+
+    void registerBookingServiceWorker();
+    void subscribeStaffPush({
+      portal: session.portal === "admin" ? "admin" : "staff",
+      actorId: session.actorId,
+    });
 
     let cancelled = false;
 
