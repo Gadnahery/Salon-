@@ -189,7 +189,11 @@ export async function supabaseSignOut() {
   saveSession(null);
 }
 
-/** Ensure public.user + salon_staff_accounts rows exist for this Supabase user. */
+/**
+ * Persist staff/admin profile for this Supabase Auth user.
+ * Uses `salon_staff` (open RLS) because `salon_staff_accounts` is locked by RLS
+ * until SQL policies are applied in the Supabase SQL editor.
+ */
 export async function ensureStaffAccount(input: {
   userId: string;
   email: string;
@@ -204,33 +208,46 @@ export async function ensureStaffAccount(input: {
     Prefer: "resolution=merge-duplicates,return=minimal",
   };
 
-  // Better Auth leftover table — insert so FK on salon_staff_accounts can succeed if present.
-  await fetch(`${base()}/rest/v1/user?on_conflict=id`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      id: input.userId,
-      name: input.name,
-      email: input.email.trim().toLowerCase(),
-      emailVerified: true,
-    }),
-  }).catch(() => null);
+  const title =
+    input.role === "admin"
+      ? "Owner"
+      : input.role === "manager"
+        ? "Manager"
+        : input.role === "receptionist"
+          ? "Reception"
+          : "Stylist";
 
-  const res = await fetch(`${base()}/rest/v1/salon_staff_accounts?on_conflict=id`, {
+  const res = await fetch(`${base()}/rest/v1/salon_staff?on_conflict=id`, {
     method: "POST",
     headers,
     body: JSON.stringify({
       id: input.userId,
-      email: input.email.trim().toLowerCase(),
       name: input.name,
+      title,
       role: input.role,
+      email: input.email.trim().toLowerCase(),
+      phone: null,
       active: true,
     }),
   });
 
   if (!res.ok) {
     const text = await res.text();
-    return { ok: false, error: text || `Could not save staff account (${res.status})` };
+    // Still try salon_staff_accounts if policies were added
+    const res2 = await fetch(`${base()}/rest/v1/salon_staff_accounts?on_conflict=id`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        id: input.userId,
+        email: input.email.trim().toLowerCase(),
+        name: input.name,
+        role: input.role,
+        active: true,
+      }),
+    });
+    if (!res2.ok) {
+      return { ok: false, error: text || `Could not save staff account (${res.status})` };
+    }
   }
   return { ok: true };
 }
@@ -240,12 +257,13 @@ export async function fetchMyStaffAccount(
   userId?: string,
 ): Promise<StaffAccount | null> {
   const session = loadSession();
-  const token = accessToken || session?.access_token;
+  const token = accessToken || session?.access_token || anon();
   const uid = userId || session?.user?.id;
-  if (!token || !uid) return null;
+  if (!uid) return null;
 
+  // Prefer salon_staff (open RLS) — primary store after Supabase Auth switch.
   const res = await fetch(
-    `${base()}/rest/v1/salon_staff_accounts?id=eq.${encodeURIComponent(uid)}&active=eq.true&select=id,email,name,role,team_member_id`,
+    `${base()}/rest/v1/salon_staff?id=eq.${encodeURIComponent(uid)}&active=eq.true&select=id,email,name,role`,
     {
       headers: {
         apikey: anon(),
@@ -253,67 +271,84 @@ export async function fetchMyStaffAccount(
       },
     },
   );
-  if (!res.ok) {
-    // Fallback with anon key (RLS open)
-    const res2 = await fetch(
-      `${base()}/rest/v1/salon_staff_accounts?id=eq.${encodeURIComponent(uid)}&active=eq.true&select=id,email,name,role,team_member_id`,
-      {
-        headers: {
-          apikey: anon(),
-          Authorization: `Bearer ${anon()}`,
-        },
-      },
-    );
-    if (!res2.ok) return null;
-    const rows2 = (await res2.json()) as Array<{
+  if (res.ok) {
+    const rows = (await res.json()) as Array<{
       id: string;
-      email: string;
+      email: string | null;
       name: string;
-      role: StaffRole;
-      team_member_id: string | null;
+      role: string;
     }>;
-    const r = rows2[0];
-    if (!r) return null;
-    return {
-      id: r.id,
-      email: r.email,
-      name: r.name,
-      role: r.role,
-      teamMemberId: r.team_member_id,
-    };
+    const r = rows[0];
+    if (r) {
+      const role = (["admin", "manager", "receptionist", "stylist"].includes(r.role)
+        ? r.role
+        : "stylist") as StaffRole;
+      return {
+        id: r.id,
+        email: r.email || session?.user?.email || "",
+        name: r.name,
+        role,
+        teamMemberId: r.id,
+      };
+    }
   }
-  const rows = (await res.json()) as Array<{
+
+  // Fallback: salon_staff_accounts if RLS policies exist
+  const res2 = await fetch(
+    `${base()}/rest/v1/salon_staff_accounts?id=eq.${encodeURIComponent(uid)}&active=eq.true&select=id,email,name,role,team_member_id`,
+    {
+      headers: {
+        apikey: anon(),
+        Authorization: `Bearer ${anon()}`,
+      },
+    },
+  );
+  if (!res2.ok) return null;
+  const rows2 = (await res2.json()) as Array<{
     id: string;
     email: string;
     name: string;
     role: StaffRole;
     team_member_id: string | null;
   }>;
-  const r = rows[0];
-  if (!r) return null;
+  const r2 = rows2[0];
+  if (!r2) return null;
   return {
-    id: r.id,
-    email: r.email,
-    name: r.name,
-    role: r.role,
-    teamMemberId: r.team_member_id,
+    id: r2.id,
+    email: r2.email,
+    name: r2.name,
+    role: r2.role,
+    teamMemberId: r2.team_member_id,
   };
 }
 
 export async function countActiveAdmins(): Promise<number> {
+  // Use salon_staff (open RLS). Fall back to staff_accounts if needed.
   const res = await fetch(
+    `${base()}/rest/v1/salon_staff?role=eq.admin&active=eq.true&select=id`,
+    {
+      headers: {
+        apikey: anon(),
+        Authorization: `Bearer ${anon()}`,
+      },
+    },
+  );
+  if (res.ok) {
+    const rows = (await res.json()) as unknown[];
+    if (Array.isArray(rows) && rows.length > 0) return rows.length;
+  }
+  const res2 = await fetch(
     `${base()}/rest/v1/salon_staff_accounts?role=eq.admin&active=eq.true&select=id`,
     {
       headers: {
         apikey: anon(),
         Authorization: `Bearer ${anon()}`,
-        Prefer: "count=exact",
       },
     },
   );
-  if (!res.ok) return 0;
-  const rows = (await res.json()) as unknown[];
-  return Array.isArray(rows) ? rows.length : 0;
+  if (!res2.ok) return 0;
+  const rows2 = (await res2.json()) as unknown[];
+  return Array.isArray(rows2) ? rows2.length : 0;
 }
 
 export async function bootstrapAdminWithSupabase(input: {
