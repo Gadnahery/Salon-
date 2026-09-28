@@ -16,7 +16,7 @@ function Setup() {
   const enterAs = useSalonStore((s) => s.enterAs);
   const [needed, setNeeded] = useState<boolean | null>(null);
   const [name, setName] = useState("Lewis");
-  const [email, setEmail] = useState("gadnahery7@gmail.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -64,7 +64,7 @@ function Setup() {
         <div className="max-w-sm">
           <p className="text-body">An admin account may already exist.</p>
           <p className="mt-2 text-support text-muted">
-            Sign in with <strong>gadnahery7@gmail.com</strong>.
+            Sign in with the email you used for this admin account.
           </p>
           <a
             href="/login"
@@ -92,7 +92,7 @@ function Setup() {
         </div>
         <h1 className="mt-6 text-center text-title font-normal">Create the admin account</h1>
         <p className="mt-1 text-center text-support text-muted">
-          Uses Supabase Auth. After this, sign in with the same email and password.
+          After this, sign in with the same email and password.
         </p>
 
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>

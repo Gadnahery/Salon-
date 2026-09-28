@@ -120,12 +120,6 @@ function EnterPage() {
             </span>
           </span>
         </Link>
-        <p className="mt-4 text-center text-support text-muted">
-          First-time admin?{" "}
-          <Link to="/setup" className="underline underline-offset-4 text-ink">
-            Create admin
-          </Link>
-        </p>
       </section>
     </main>
   );
