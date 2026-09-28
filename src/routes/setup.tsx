@@ -4,7 +4,7 @@ import { LogoWord } from "@/components/salon/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { authClient } from "@/lib/auth/client";
-import { claimFirstAdminFn, staffSetupNeededFn } from "@/lib/auth/staff-actions";
+import { bootstrapAdminFn, staffSetupNeededFn } from "@/lib/auth/staff-actions";
 
 export const Route = createFileRoute("/setup")({ component: Setup });
 
@@ -25,7 +25,6 @@ function Setup() {
         setCheckError(null);
       })
       .catch((err) => {
-        // DB / table errors must NOT look like "setup complete"
         setNeeded(true);
         setCheckError(
           err instanceof Error
@@ -39,54 +38,28 @@ function Setup() {
     e.preventDefault();
     setBusy(true);
     setError(null);
-
-    // Prefer sign-up; if email already exists, sign in then claim admin.
-    let signedIn = false;
-    const { error: signUpError } = await authClient.signUp.email({ email, password, name });
-    if (!signUpError) {
-      signedIn = true;
-    } else {
-      const msg = (signUpError.message ?? "").toLowerCase();
-      const exists =
-        msg.includes("already") ||
-        msg.includes("exist") ||
-        msg.includes("registered") ||
-        msg.includes("unique");
-      if (exists) {
-        const { error: signInError } = await authClient.signIn.email({ email, password });
-        if (signInError) {
-          setBusy(false);
-          setError(
-            signInError.message ??
-              "This email is already registered. Check the password, or sign in at /login.",
-          );
-          return;
-        }
-        signedIn = true;
-      } else {
+    try {
+      // Server-side bootstrap: creates Better Auth user + admin staff row.
+      await bootstrapAdminFn({
+        data: { email: email.trim(), password, name: name.trim() || "Admin" },
+      });
+      // Best-effort browser session so /admin works immediately.
+      const { error: signInError } = await authClient.signIn.email({
+        email: email.trim(),
+        password,
+      });
+      if (signInError) {
+        // Account exists; send them to login with a clear message.
+        setError(
+          `Admin created, but automatic sign-in failed (${signInError.message}). Go to Sign in with the same email and password.`,
+        );
         setBusy(false);
-        setError(signUpError.message ?? "Could not create the admin account.");
         return;
       }
-    }
-
-    if (!signedIn) {
-      setBusy(false);
-      setError("Could not sign in after sign-up.");
-      return;
-    }
-
-    try {
-      await claimFirstAdminFn();
       void navigate({ to: "/admin" });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Could not finish admin setup.";
-      // If admin already claimed, send them to login/admin
-      if (message.toLowerCase().includes("already")) {
-        void navigate({ to: "/login" });
-        return;
-      }
-      setError(message);
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg || "Could not create the admin account.");
     } finally {
       setBusy(false);
     }
@@ -170,7 +143,11 @@ function Setup() {
               placeholder="At least 8 characters"
             />
           </div>
-          {error && <p className="rounded-2xl bg-brand-soft px-4 py-3 text-support text-brand">{error}</p>}
+          {error && (
+            <p className="rounded-2xl bg-brand-soft px-4 py-3 text-support text-brand whitespace-pre-wrap">
+              {error}
+            </p>
+          )}
           <Button type="submit" className="h-13 w-full bg-ink text-white" disabled={busy}>
             {busy ? "Creating…" : "Create admin account"}
           </Button>

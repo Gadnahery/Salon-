@@ -105,6 +105,96 @@ export const claimFirstAdminFn = createServerFn({ method: "POST" })
     return { id: context.userId, email: user.email, name: user.name, role: "admin", teamMemberId: null };
   });
 
+
+/**
+ * One-time server-side admin bootstrap (no prior session required).
+ * Creates the Better Auth user + salon_staff_accounts admin row.
+ * Only allowed when no active admin exists.
+ */
+export const bootstrapAdminFn = createServerFn({ method: "POST" })
+  .validator((input: { email: string; password: string; name: string }) => input)
+  .handler(async ({ data }): Promise<StaffAccount> => {
+    const email = data.email.trim().toLowerCase();
+    const name = data.name.trim() || "Admin";
+    const password = data.password;
+    if (!email || password.length < 8) {
+      throw new Error("Email and a password of at least 8 characters are required.");
+    }
+
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+
+    try {
+      const existing = await sql<{ count: string }>`
+        select count(*)::text as count from salon_staff_accounts
+        where role = 'admin' and active = true
+      `;
+      if ((existing[0]?.count ?? "0") !== "0") {
+        throw new Error("An admin already exists. Sign in at /login instead.");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("already exists")) throw err;
+      // Table missing — try to continue; insert may fail with clearer error
+      if (!/does not exist|relation/i.test(msg)) {
+        /* rethrow non-missing-table issues after admin count */
+      }
+    }
+
+    const { auth } = await import("./server");
+    let userId: string | undefined;
+    try {
+      const result = await auth.api.signUpEmail({
+        body: { email, password, name },
+      });
+      userId = result?.user?.id;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // User may already exist from a partial previous attempt
+      if (/already|exist|unique/i.test(msg)) {
+        try {
+          const signed = await auth.api.signInEmail({
+            body: { email, password },
+          });
+          userId = signed?.user?.id;
+        } catch (signErr) {
+          throw new Error(
+            signErr instanceof Error
+              ? `Account exists but sign-in failed: ${signErr.message}`
+              : "Account exists but password does not match. Try /login.",
+          );
+        }
+      } else {
+        throw new Error(`Could not create login: ${msg}`);
+      }
+    }
+
+    if (!userId) {
+      throw new Error(
+        "Could not create login — check DATABASE_URL on Vercel points to Supabase (pooler) and auth tables exist.",
+      );
+    }
+
+    try {
+      await sql`
+        insert into salon_staff_accounts (id, email, name, role, active)
+        values (${userId}, ${email}, ${name}, 'admin', true)
+        on conflict (id) do update set
+          email = excluded.email,
+          name = excluded.name,
+          role = 'admin',
+          active = true
+      `;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `Login created but staff row failed: ${msg}. Ensure salon_staff_accounts and "user" tables exist.`,
+      );
+    }
+
+    return { id: userId, email, name, role: "admin", teamMemberId: null };
+  });
+
 /**
  * Admin/manager-only: create a new staff or admin login. Creates the Better
  * Auth user server-side (does NOT touch the calling admin's browser session,
