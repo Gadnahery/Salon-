@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
+import { ImagePicker } from "@/components/salon/image-picker";
 import { Photo } from "@/components/salon/photo";
 import { categoryLabel, categoryOrder, formatDuration, formatTsh } from "@/lib/salon/format";
 import { stylistsOnTeam } from "@/lib/salon/data";
@@ -40,15 +41,22 @@ function AdminServices() {
   const removeService = useSalonStore((s) => s.removeService);
   const [edit, setEdit] = useState<Service | null>(null);
   const [creating, setCreating] = useState(false);
+  const [cover, setCover] = useState("");
+  const [extraGallery, setExtraGallery] = useState<string[]>([]);
+  const galleryItems = useSalonStore((s) => s.galleryItems);
 
   function openCreate() {
     setCreating(true);
+    setCover("");
+    setExtraGallery([]);
     setEdit(emptyService());
   }
 
   function saveFromForm(fd: FormData, current: Service) {
     const name = String(fd.get("name") ?? current.name).trim();
     if (!name) return;
+    const image = cover.trim() || current.image;
+    const gallery = [image, ...extraGallery].filter(Boolean);
     const patch: Partial<Service> = {
       name,
       description: String(fd.get("description") ?? current.description),
@@ -58,15 +66,10 @@ function AdminServices() {
       durationMin: Number(fd.get("durationMin") ?? current.durationMin),
       durationMax: Number(fd.get("durationMax") || 0) || undefined,
       depositPercent: Number(fd.get("depositPercent") ?? current.depositPercent),
-      image: String(fd.get("image") ?? current.image).trim() || current.image,
+      image,
+      gallery,
       available: fd.get("available") === "on" || fd.get("available") === "true",
     };
-    const galleryRaw = String(fd.get("gallery") ?? "").trim();
-    if (galleryRaw) {
-      patch.gallery = galleryRaw.split("\n").map((l) => l.trim()).filter(Boolean);
-    } else if (patch.image) {
-      patch.gallery = [patch.image];
-    }
 
     if (creating) {
       addService({ ...current, ...patch, id: current.id || `svc-${Date.now()}` });
@@ -75,6 +78,8 @@ function AdminServices() {
     }
     setEdit(null);
     setCreating(false);
+    setCover("");
+    setExtraGallery([]);
   }
 
   return (
@@ -105,6 +110,8 @@ function AdminServices() {
                     onClick={() => {
                       setCreating(false);
                       setEdit(s);
+                      setCover(s.image || "");
+                      setExtraGallery((s.gallery ?? []).filter((u) => u && u !== s.image));
                     }}
                     className="flex w-full items-center gap-4 rounded-[24px] bg-surface p-3 text-left"
                   >
@@ -157,19 +164,45 @@ function AdminServices() {
             <Label className="mt-4">Description</Label>
             <Textarea name="description" defaultValue={edit.description} placeholder="What the guest gets" />
 
-            <Label className="mt-4">Cover image URL</Label>
-            <Input name="image" defaultValue={edit.image} placeholder="/images/braiding.jpg or https://…" />
-            <p className="mt-1 text-support text-muted">
-              Use a path under /images/ or a full URL. Shown on cards and service detail.
+            <div className="mt-4">
+              <ImagePicker
+                value={cover}
+                onChange={setCover}
+                label="Cover photo (from phone or gallery)"
+                galleryChoices={galleryItems
+                  .filter((g) => g.visible && g.src)
+                  .map((g) => ({ id: g.id, src: g.src, alt: g.alt }))}
+              />
+            </div>
+            <p className="mt-2 text-support text-muted">
+              Choose a new photo from your device, or pick one already in the Gallery.
             </p>
-
-            <Label className="mt-4">Gallery image URLs (one per line)</Label>
-            <Textarea
-              name="gallery"
-              defaultValue={(edit.gallery ?? []).join("\n")}
-              placeholder={"/images/gallery-braids.jpg\n/images/sig-braiding.jpg"}
-              rows={3}
-            />
+            <div className="mt-4 space-y-2">
+              <p className="text-support font-medium text-muted">Extra service photos</p>
+              {extraGallery.map((src, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Photo src={src} alt="" className="size-14 rounded-xl" />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="h-10"
+                    onClick={() => setExtraGallery((xs) => xs.filter((_, j) => j !== i))}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <ImagePicker
+                value=""
+                onChange={(src) => {
+                  if (src) setExtraGallery((xs) => [...xs, src]);
+                }}
+                label="Add another photo"
+                galleryChoices={galleryItems
+                  .filter((g) => g.visible && g.src)
+                  .map((g) => ({ id: g.id, src: g.src, alt: g.alt }))}
+              />
+            </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div>

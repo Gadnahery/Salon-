@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { ImagePicker } from "@/components/salon/image-picker";
 import { Photo } from "@/components/salon/photo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -20,6 +21,7 @@ function AdminGallery() {
   const [cat, setCat] = useState<(typeof cats)[number]>("All");
   const [edit, setEdit] = useState<GalleryItem | null>(null);
   const [creating, setCreating] = useState(false);
+  const [photo, setPhoto] = useState("");
 
   const shown = items
     .filter((g) => (cat === "All" ? true : g.category === cat))
@@ -27,6 +29,7 @@ function AdminGallery() {
 
   function openNew() {
     setCreating(true);
+    setPhoto("");
     setEdit({
       id: `gal-${Date.now()}`,
       src: "",
@@ -37,18 +40,25 @@ function AdminGallery() {
     });
   }
 
+  function openEdit(g: GalleryItem) {
+    setCreating(false);
+    setPhoto(g.src);
+    setEdit(g);
+  }
+
   function save(fd: FormData) {
     if (!edit) return;
-    const src = String(fd.get("src") ?? "").trim();
+    const src = photo.trim();
+    if (!src) return;
     const alt = String(fd.get("alt") ?? "").trim() || "Gallery photo";
     const category = String(fd.get("category") ?? "Salon");
     const order = Number(fd.get("order") ?? edit.order) || edit.order;
-    if (!src) return;
     const next: GalleryItem = { ...edit, src, alt, category, order };
     if (creating) addGalleryItem(next);
     else updateGalleryItem(edit.id, next);
     setEdit(null);
     setCreating(false);
+    setPhoto("");
   }
 
   return (
@@ -56,10 +66,10 @@ function AdminGallery() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-title font-normal">Gallery</h1>
-          <p className="mt-2 text-body text-muted">Add, edit, hide, or remove public photos (image URL).</p>
+          <p className="mt-2 text-body text-muted">Choose photos from your phone or computer — not URLs.</p>
         </div>
         <Button className="h-11 bg-ink text-white" onClick={openNew}>
-          Add image
+          Add photo
         </Button>
       </div>
       <div className="mt-6 flex gap-2 overflow-x-auto hide-scroll">
@@ -80,7 +90,7 @@ function AdminGallery() {
       <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
         {shown.map((g) => (
           <li key={g.id} className="overflow-hidden rounded-[20px] bg-surface">
-            <button type="button" className="block w-full text-left" onClick={() => { setCreating(false); setEdit(g); }}>
+            <button type="button" className="block w-full text-left" onClick={() => openEdit(g)}>
               <Photo src={g.src} alt={g.alt} className="aspect-[4/5] w-full" />
             </button>
             <div className="flex items-center justify-between gap-2 px-3 py-3">
@@ -93,7 +103,7 @@ function AdminGallery() {
                   type="button"
                   className="text-support text-brand"
                   onClick={() => {
-                    if (confirm("Delete this image?")) removeGalleryItem(g.id);
+                    if (confirm("Delete this photo?")) removeGalleryItem(g.id);
                   }}
                 >
                   Delete
@@ -104,7 +114,7 @@ function AdminGallery() {
         ))}
       </ul>
       {shown.length === 0 && (
-        <p className="mt-10 text-center text-body text-muted">No images yet. Add a photo URL to start the gallery.</p>
+        <p className="mt-10 text-center text-body text-muted">No photos yet. Tap Add photo and choose from your device.</p>
       )}
 
       {edit && (
@@ -116,10 +126,12 @@ function AdminGallery() {
               save(new FormData(e.currentTarget));
             }}
           >
-            <p className="text-section font-normal">{creating ? "New gallery image" : "Edit image"}</p>
-            <Label className="mt-5">Image URL</Label>
-            <Input name="src" defaultValue={edit.src} required placeholder="https://… or /images/…" />
-            <p className="mt-1 text-support text-muted">Paste a direct image link (https). Prefer compressed JPG/WebP.</p>
+            <p className="text-section font-normal">{creating ? "New gallery photo" : "Edit photo"}</p>
+
+            <div className="mt-5">
+              <ImagePicker value={photo} onChange={setPhoto} label="Photo from device" />
+            </div>
+
             <Label className="mt-4">Caption</Label>
             <Input name="alt" defaultValue={edit.alt} placeholder="Short description" />
             <Label className="mt-4">Category</Label>
@@ -137,10 +149,18 @@ function AdminGallery() {
             <Label className="mt-4">Order</Label>
             <Input name="order" type="number" defaultValue={edit.order} />
             <div className="mt-6 flex gap-3">
-              <Button type="button" variant="secondary" className="h-12 flex-1" onClick={() => setEdit(null)}>
+              <Button
+                type="button"
+                variant="secondary"
+                className="h-12 flex-1"
+                onClick={() => {
+                  setEdit(null);
+                  setPhoto("");
+                }}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="h-12 flex-1 bg-ink text-white">
+              <Button type="submit" className="h-12 flex-1 bg-ink text-white" disabled={!photo}>
                 Save
               </Button>
             </div>
