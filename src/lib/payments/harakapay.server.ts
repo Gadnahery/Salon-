@@ -1,17 +1,14 @@
 /**
- * HarakaPay server integration — matches https://harakapay.net docs:
- * - Auth header: X-API-Key
- * - POST /api/v1/collect { phone, amount, description?, webhook_url? }
- * - GET  /api/v1/status/{order_id}
- * - GET  /api/v1/balance
- * - Webhook POST body: { order_id, status: completed|failed, amount, ... }
+ * HarakaPay — docs: X-API-Key, POST /api/v1/collect, GET /status/{id}, GET /balance
+ * Collect can be slow; we hard-timeout so the UI never spins forever.
  */
 import { getSql } from "@/lib/db";
 import { env } from "@/lib/env.server";
 
 const BASE = "https://harakapay.net";
+const COLLECT_TIMEOUT_MS = 25_000;
+const STATUS_TIMEOUT_MS = 12_000;
 
-/** Public production origin for webhooks (always absolute HTTPS). */
 function defaultWebhookUrl(): string | undefined {
   const explicit =
     env("PAYMENT_WEBHOOK_URL") ||
@@ -26,36 +23,68 @@ function defaultWebhookUrl(): string | undefined {
 
 function apiKey() {
   const key = env("HARAKAPAY_API_KEY");
-  if (!key) throw new Error("HARAKAPAY_API_KEY is not set on the server");
+  if (!key) throw new Error("HARAKAPAY_API_KEY is not set on the server. Add it in Vercel env and redeploy.");
   return key;
 }
 
-/** Normalize to local TZ format 07XXXXXXXX as HarakaPay examples use. */
+/** HarakaPay examples use 07XXXXXXXX */
 export function localPhone(phone: string) {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.startsWith("255") && digits.length >= 12) return `0${digits.slice(3)}`;
-  if (digits.startsWith("0") && digits.length >= 10) return digits.slice(0, 10);
-  if (digits.length === 9) return `0${digits}`;
+  let digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("255") && digits.length >= 12) digits = `0${digits.slice(3)}`;
+  else if (digits.length === 9) digits = `0${digits}`;
+  // Keep leading 0 and 9 digits after
+  if (digits.startsWith("0") && digits.length > 10) digits = digits.slice(0, 10);
   return digits;
 }
 
-async function hpFetch(path: string, init?: RequestInit) {
-  const res = await fetch(`${BASE}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      "X-API-Key": apiKey(),
-      ...(init?.headers ?? {}),
-    },
-  });
-  const text = await res.text();
-  let json: unknown = null;
+async function hpFetch(path: string, init?: RequestInit & { timeoutMs?: number }) {
+  const timeoutMs = init?.timeoutMs ?? STATUS_TIMEOUT_MS;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    json = text ? JSON.parse(text) : null;
-  } catch {
-    json = { raw: text };
+    const res = await fetch(`${BASE}${path}`, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-API-Key": apiKey(),
+        ...(init?.headers ?? {}),
+      },
+    });
+    const text = await res.text();
+    let json: unknown = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {
+      json = { raw: text?.slice(0, 400) };
+    }
+    return { ok: res.ok, status: res.status, json, text };
+  } catch (e) {
+    const name = e instanceof Error ? e.name : "";
+    if (name === "AbortError") {
+      return {
+        ok: false,
+        status: 408,
+        json: {
+          success: false,
+          error: `HarakaPay did not respond within ${Math.round(timeoutMs / 1000)}s. Try again in a moment.`,
+        },
+        text: "",
+      };
+    }
+    return {
+      ok: false,
+      status: 0,
+      json: {
+        success: false,
+        error: e instanceof Error ? e.message : "Network error reaching HarakaPay",
+      },
+      text: "",
+    };
+  } finally {
+    clearTimeout(timer);
   }
-  return { ok: res.ok, status: res.status, json };
 }
 
 export type CollectResult =
@@ -73,10 +102,23 @@ export async function collectHarakapay(input: {
   method: string;
   kind?: "deposit" | "balance" | "full";
 }): Promise<CollectResult> {
+  let key: string;
+  try {
+    key = apiKey();
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Missing HARAKAPAY_API_KEY" };
+  }
+  if (!key.startsWith("hpk_")) {
+    return { ok: false, message: "HARAKAPAY_API_KEY looks invalid (should start with hpk_)." };
+  }
+
   const phone = localPhone(input.phone);
   const amount = Math.round(Number(input.amount));
-  if (!phone || phone.length < 10) {
-    return { ok: false, message: "Enter a valid Tanzanian phone (e.g. 07XXXXXXXX)." };
+  if (!phone || !/^0[67]\d{8}$/.test(phone)) {
+    return {
+      ok: false,
+      message: `Phone must be a Tanzanian mobile like 07XXXXXXXX or 06XXXXXXXX (got “${phone || "empty"}”).`,
+    };
   }
   if (!Number.isFinite(amount) || amount < 100) {
     return { ok: false, message: "Amount must be at least TSh 100." };
@@ -86,14 +128,16 @@ export async function collectHarakapay(input: {
   const body: Record<string, unknown> = {
     phone,
     amount,
-    description: input.description || `Payment ${input.bookingId}`,
+    description: (input.description || `Payment ${input.bookingId}`).slice(0, 120),
   };
   if (webhook_url) body.webhook_url = webhook_url;
 
   const { ok, status, json } = await hpFetch("/api/v1/collect", {
     method: "POST",
     body: JSON.stringify(body),
+    timeoutMs: COLLECT_TIMEOUT_MS,
   });
+
   const data = json as {
     success?: boolean;
     order_id?: string;
@@ -102,17 +146,26 @@ export async function collectHarakapay(input: {
     amount?: number;
     net_amount?: number;
     fee?: number;
+    raw?: string;
   } | null;
 
   if (!ok || !data?.success || !data.order_id) {
+    const detail =
+      data?.error ||
+      data?.message ||
+      (typeof data?.raw === "string" && data.raw) ||
+      null;
     return {
       ok: false,
       message:
-        data?.error ||
-        data?.message ||
+        detail ||
         (status === 401 || status === 403
-          ? "HarakaPay rejected the API key. Check HARAKAPAY_API_KEY on Vercel."
-          : `HarakaPay could not send the USSD prompt (${status}).`),
+          ? "HarakaPay rejected the API key. Check HARAKAPAY_API_KEY on Vercel and redeploy."
+          : status === 408
+            ? "HarakaPay timed out before sending USSD. Try again — if it keeps failing, contact support@harakapay.net."
+            : status === 0
+              ? "Could not reach HarakaPay from the server."
+              : `HarakaPay could not send USSD (HTTP ${status}).`),
     };
   }
 
@@ -142,7 +195,7 @@ export async function collectHarakapay(input: {
       input.bookingId,
     ]);
   } catch {
-    // Payment still lives at HarakaPay; client store will track order_id.
+    /* optional DB */
   }
 
   return {
@@ -156,7 +209,9 @@ export async function collectHarakapay(input: {
 }
 
 export async function harakapayStatus(orderId: string) {
-  const { ok, json } = await hpFetch(`/api/v1/status/${encodeURIComponent(orderId)}`);
+  const { ok, json } = await hpFetch(`/api/v1/status/${encodeURIComponent(orderId)}`, {
+    timeoutMs: STATUS_TIMEOUT_MS,
+  });
   const data = json as {
     success?: boolean;
     payment?: {
@@ -165,15 +220,12 @@ export async function harakapayStatus(orderId: string) {
       amount: number;
       net_amount?: number;
       fee_amount?: number;
-      completed_at?: string;
     };
     error?: string;
     message?: string;
   } | null;
 
   const status = data?.payment?.status ?? "unknown";
-
-  // Persist completed/failed when polled (docs: status endpoint can also trigger webhook)
   if (data?.payment && (status === "completed" || status === "failed")) {
     await applyWebhook({
       order_id: orderId,
@@ -193,7 +245,7 @@ export async function harakapayStatus(orderId: string) {
 }
 
 export async function harakapayBalance() {
-  const { ok, json } = await hpFetch("/api/v1/balance");
+  const { ok, json } = await hpFetch("/api/v1/balance", { timeoutMs: 10_000 });
   const data = json as {
     success?: boolean;
     wallet_balance?: number;
@@ -247,7 +299,7 @@ export async function applyWebhook(payload: {
       );
     }
   } catch {
-    /* DB optional */
+    /* optional */
   }
   return { ok: true };
 }

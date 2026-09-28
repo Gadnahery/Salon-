@@ -13,6 +13,8 @@ export type CollectInput = {
   kind?: "deposit" | "balance" | "full";
   polls?: number;
   intervalMs?: number;
+  /** Called when USSD was sent and we start polling */
+  onPromptSent?: (orderId: string) => void;
 };
 
 export type CollectOutcome =
@@ -20,10 +22,12 @@ export type CollectOutcome =
   | { ok: false; orderId?: string; pending?: boolean; message: string };
 
 export async function collectUntilPaid(input: CollectInput): Promise<CollectOutcome> {
-  const polls = input.polls ?? 24;
+  const polls = input.polls ?? 20;
   const intervalMs = input.intervalMs ?? 3000;
+
+  let result: Awaited<ReturnType<typeof collectPaymentFn>>;
   try {
-    const result = await collectPaymentFn({
+    result = await collectPaymentFn({
       data: {
         phone: input.phone,
         amount: Math.max(100, Math.round(input.amount)),
@@ -35,41 +39,72 @@ export async function collectUntilPaid(input: CollectInput): Promise<CollectOutc
         kind: input.kind,
       },
     });
-    if (!result.ok) {
-      return { ok: false, message: result.message };
-    }
-    for (let i = 0; i < polls; i++) {
-      await wait(intervalMs);
-      const st = await checkPaymentFn({ data: { orderId: result.orderId } });
-      if (st.status === "completed" || st.status === "paid") return { ok: true, orderId: result.orderId };
-      if (st.status === "failed") {
-        return { ok: false, orderId: result.orderId, message: "The payment was declined on the phone." };
-      }
-    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     return {
       ok: false,
-      orderId: result.orderId,
-      pending: true,
       message:
-        "The USSD prompt is still waiting. Approve it on your phone, then tap Try again — we will not charge twice if it already went through.",
+        msg.includes("HARAKAPAY") || msg.includes("API")
+          ? msg
+          : `Payment request failed: ${msg || "server error"}. Check your connection and try again.`,
     };
-  } catch {
-    return { ok: false, message: "The payment service is unavailable right now." };
   }
+
+  if (!result.ok) {
+    return { ok: false, message: result.message || "Could not send USSD push." };
+  }
+
+  input.onPromptSent?.(result.orderId);
+
+  for (let i = 0; i < polls; i++) {
+    await wait(intervalMs);
+    try {
+      const st = await checkPaymentFn({ data: { orderId: result.orderId } });
+      if (st.status === "completed" || st.status === "paid") {
+        return { ok: true, orderId: result.orderId };
+      }
+      if (st.status === "failed") {
+        return {
+          ok: false,
+          orderId: result.orderId,
+          message: "Payment was declined or failed on the phone. You can try again.",
+        };
+      }
+    } catch {
+      // keep polling; status may recover
+    }
+  }
+
+  return {
+    ok: false,
+    orderId: result.orderId,
+    pending: true,
+    message:
+      "No confirmation yet. If you approved USSD, tap “Check again”. If you never got a prompt, try again or use another number.",
+  };
 }
 
-export async function pollExistingOrder(orderId: string, polls = 8, intervalMs = 2500): Promise<CollectOutcome> {
+export async function pollExistingOrder(orderId: string, polls = 10, intervalMs = 2500): Promise<CollectOutcome> {
   try {
     for (let i = 0; i < polls; i++) {
       const st = await checkPaymentFn({ data: { orderId } });
       if (st.status === "completed" || st.status === "paid") return { ok: true, orderId };
       if (st.status === "failed") {
-        return { ok: false, orderId, message: "The payment was declined on the phone." };
+        return { ok: false, orderId, message: "Payment was declined on the phone." };
       }
       await wait(intervalMs);
     }
-    return { ok: false, orderId, pending: true, message: "Still waiting for the USSD confirmation." };
-  } catch {
-    return { ok: false, orderId, message: "Could not check that payment." };
+    return {
+      ok: false,
+      orderId,
+      pending: true,
+      message: "Still waiting for confirmation. Approve USSD if it appeared, then check again.",
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      orderId,
+      message: e instanceof Error ? e.message : "Could not check that payment.",
+    };
   }
 }

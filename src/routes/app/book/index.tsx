@@ -66,7 +66,7 @@ function BookPage() {
   const navigate = useNavigate();
   const [needService, setNeedService] = useState(!serviceParam);
   const [step, setStep] = useState(0);
-  const [paying, setPaying] = useState<"idle" | "waiting" | "confirming">("idle");
+  const [paying, setPaying] = useState<"idle" | "sending" | "waiting" | "confirming">("idle");
   const [payError, setPayError] = useState(false);
   const [payMessage, setPayMessage] = useState("");
   const [policyOpen, setPolicyOpen] = useState(false);
@@ -127,7 +127,7 @@ function BookPage() {
     if (!service) return;
     setPayError(false);
     setPayMessage("");
-    setPaying("waiting");
+    setPaying("sending");
     const held = holdBooking();
     if (!held) {
       setPaying("idle");
@@ -135,8 +135,9 @@ function BookPage() {
       setPayMessage("We couldn't hold this time. Choose another slot.");
       return;
     }
+    const phone = profile.mpesaPhone || profile.phone;
     const result = await collectUntilPaid({
-      phone: profile.mpesaPhone || profile.phone,
+      phone,
       amount: deposit,
       description: `Salon ${service.name} deposit`,
       bookingId: held.id,
@@ -144,6 +145,7 @@ function BookPage() {
       customerName: held.customerName,
       method: draft.paymentMethod,
       kind: "deposit",
+      onPromptSent: () => setPaying("waiting"),
     });
     if (result.ok) {
       setPaying("confirming");
@@ -564,12 +566,23 @@ function BookPage() {
               We&apos;ll send a mobile-money prompt to your phone number. The network is detected automatically from your number.
             </p>
             {payError && (
-              <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
-                <p className="text-body font-medium">Payment wasn&apos;t completed</p>
-                <p className="mt-1 text-support text-muted">
+              <div className="mt-5 rounded-2xl border border-brand/30 bg-brand-soft p-4">
+                <p className="text-body font-medium text-brand">Payment problem</p>
+                <p className="mt-1 text-support text-ink">
                   {payMessage ||
                     "Your appointment hasn&apos;t been confirmed. Check the USSD prompt on your phone, then try again."}
                 </p>
+                <Button
+                  type="button"
+                  className="mt-4 h-11 w-full bg-ink text-white"
+                  onClick={() => {
+                    setPayError(false);
+                    setPayMessage("");
+                    void pay();
+                  }}
+                >
+                  Try payment again
+                </Button>
               </div>
             )}
           </div>
@@ -617,6 +630,11 @@ function BookPage() {
           phase={paying}
           phone={profile.mpesaPhone || profile.phone}
           amount={deposit}
+          onCancel={() => {
+            setPaying("idle");
+            setPayError(true);
+            setPayMessage("Cancelled. If USSD never appeared, check the phone number and try again.");
+          }}
         />
       )}
     </main>

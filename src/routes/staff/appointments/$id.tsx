@@ -32,7 +32,7 @@ function StaffAppointment() {
   const setAppointmentPhotos = useSalonStore((s) => s.setAppointmentPhotos);
   const navigate = useNavigate();
   const [confirm, setConfirm] = useState<"start" | "complete" | "cancel" | "no_show" | null>(null);
-  const [paying, setPaying] = useState<"idle" | "waiting" | "confirming">("idle");
+  const [paying, setPaying] = useState<"idle" | "sending" | "waiting" | "confirming">("idle");
   const [payMessage, setPayMessage] = useState("");
   const [discountPct, setDiscountPct] = useState(0);
 
@@ -63,7 +63,7 @@ function StaffAppointment() {
 
   async function collectNow() {
     setPayMessage("");
-    setPaying("waiting");
+    setPaying("sending");
     const result = await collectUntilPaid({
       phone: booking.customerPhone,
       amount: booking.remaining,
@@ -73,7 +73,9 @@ function StaffAppointment() {
       customerName: booking.customerName,
       method: booking.paymentMethod,
       kind: "balance",
-    });
+    }),
+      onPromptSent: () => setPaying("waiting"),
+    };
     if (result.ok) {
       setPaying("confirming");
       collectBalance(booking.id, result.orderId);
@@ -343,7 +345,15 @@ function StaffAppointment() {
         )}
       </section>
 
-      <PayOverlay phase={paying} phone={appt.customerPhone} amount={appt.remaining} />
+      <PayOverlay
+        phase={paying}
+        phone={appt.customerPhone}
+        amount={appt.remaining}
+        onCancel={() => {
+          setPaying("idle");
+          setPayMessage("Payment cancelled.");
+        }}
+      />
       )}
     </main>
   );

@@ -35,7 +35,7 @@ function WalkInPage() {
   const [payment, setPayment] = useState<"deposit" | "now" | "later">("later");
   const [method, setMethod] = useState<PaymentMethod>("mpesa");
   const [doneId, setDoneId] = useState<string | null>(null);
-  const [paying, setPaying] = useState<"idle" | "waiting" | "confirming">("idle");
+  const [paying, setPaying] = useState<"idle" | "sending" | "waiting" | "confirming">("idle");
   const [payMessage, setPayMessage] = useState("");
 
   const digits = phone.replace(/\D/g, "");
@@ -71,7 +71,7 @@ function WalkInPage() {
     });
     if (!appt) return;
     if (amount > 0) {
-      setPaying("waiting");
+      setPaying("sending");
       const result = await collectUntilPaid({
         phone: phone.trim(),
         amount,
@@ -81,6 +81,7 @@ function WalkInPage() {
         customerName: appt.customerName,
         method,
         kind: payment === "now" ? "full" : "deposit",
+        onPromptSent: () => setPaying("waiting"),
       });
       if (!result.ok) {
         setPaying("idle");
@@ -256,7 +257,7 @@ function WalkInPage() {
                 We&apos;ll push a USSD prompt to the customer&apos;s number. Network is detected automatically.
               </p>
             )}
-            {payMessage && <p className="mt-4 text-support text-muted">{payMessage}</p>}
+            {payMessage && <p className="mt-4 rounded-2xl bg-brand-soft px-4 py-3 text-support text-brand">{payMessage}</p>}
           </>
         )}
       </div>
@@ -286,7 +287,15 @@ function WalkInPage() {
         </div>
       </div>
       {paying !== "idle" && (
-        <PayOverlay phase={paying} phone={phone} amount={service ? (payment === "now" ? quote(service.id).total : quote(service.id).deposit) : 0} />
+        <PayOverlay
+          phase={paying}
+          phone={phone}
+          amount={service ? (payment === "now" ? quote(service.id).total : quote(service.id).deposit) : 0}
+          onCancel={() => {
+            setPaying("idle");
+            setPayMessage("Payment cancelled.");
+          }}
+        />
       )}
     </main>
   );
