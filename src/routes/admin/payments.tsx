@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatTsh, paymentLabel, statusLabel } from "@/lib/salon/format";
 import { useSalonStore } from "@/lib/salon/store";
 import type { PaymentStatus } from "@/lib/salon/types";
 import { cn } from "@/lib/utils";
+import { paymentBalanceFn } from "@/lib/payments/actions";
 
 export const Route = createFileRoute("/admin/payments")({ component: AdminPayments });
 
@@ -13,6 +14,14 @@ function AdminPayments() {
   const refundPayment = useSalonStore((s) => s.refundPayment);
   const [status, setStatus] = useState<"all" | PaymentStatus>("all");
   const [open, setOpen] = useState<string | null>(null);
+  const [wallet, setWallet] = useState<{ wallet: number; float: number } | null>(null);
+  useEffect(() => {
+    paymentBalanceFn()
+      .then((b) => {
+        if (b.ok) setWallet({ wallet: b.wallet, float: b.float });
+      })
+      .catch(() => setWallet(null));
+  }, []);
   const list = useMemo(
     () => payments.filter((p) => (status === "all" ? true : p.status === status)),
     [payments, status],
@@ -22,6 +31,12 @@ function AdminPayments() {
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 lg:px-8">
       <h1 className="text-title font-normal">Payments</h1>
+      {wallet && (
+        <p className="mt-2 text-support text-muted">
+          HarakaPay wallet {formatTsh(wallet.wallet)}
+          {wallet.float ? ` · float ${formatTsh(wallet.float)}` : ""}
+        </p>
+      )}
       <div className="mt-5 flex flex-wrap gap-2">
         {(["all", "paid", "pending", "partial", "failed", "refunded"] as const).map((s) => (
           <button

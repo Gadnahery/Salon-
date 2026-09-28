@@ -1150,9 +1150,35 @@ export function useUpcoming() {
 export function useStaffAppointments() {
   const appointments = useSalonStore((s) => s.appointments);
   const session = useSalonStore((s) => s.session);
-  if (session.role === "stylist") {
-    return appointments.filter((a) => a.stylistId === session.actorId || a.anyStylist || a.stylistId === "any");
+  const team = useSalonStore((s) => s.team);
+  const catalog = useSalonStore((s) => s.catalog);
+
+  // Admin / manager / receptionist: all bookings
+  if (session.role === "admin" || session.role === "manager" || session.role === "receptionist") {
+    return appointments;
   }
+
+  // Department staff (stylist): own bookings + same department (service category / specialties)
+  if (session.role === "stylist") {
+    const me = team.find((m) => m.id === session.actorId);
+    const departments = new Set(me?.specialties ?? []);
+    return appointments.filter((a) => {
+      if (a.stylistId === session.actorId) return true;
+      if (a.anyStylist || a.stylistId === "any") {
+        const svc = catalog.find((s) => s.id === a.serviceId) || getService(a.serviceId);
+        if (!svc) return true;
+        if (departments.size === 0) return true;
+        return departments.has(svc.category);
+      }
+      // Same department as assigned stylist
+      const assigned = team.find((m) => m.id === a.stylistId);
+      if (assigned && me) {
+        return assigned.specialties.some((c) => me.specialties.includes(c));
+      }
+      return false;
+    });
+  }
+
   return appointments;
 }
 

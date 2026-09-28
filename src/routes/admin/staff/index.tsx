@@ -191,19 +191,23 @@ function AdminStaff() {
               const fd = new FormData(e.currentTarget);
               const name = String(fd.get("name"));
               const role = String(fd.get("role")) as StaffRole;
-              const id = name.toLowerCase().replace(/\s+/g, "-");
+              const department = String(fd.get("department") || "hair") as import("@/lib/salon/types").Category;
+              const id = name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now().toString(36).slice(-4);
               const member: TeamMember = {
                 id,
                 name,
                 title: String(fd.get("title") || role),
                 bio: "",
-                specialties: ["hair"],
+                specialties: [department],
                 initials: name.slice(0, 1).toUpperCase(),
                 rating: 5,
                 role,
                 phone: String(fd.get("phone")),
-                email: `${id}@salon.co.tz`,
-                serviceIds: role === "stylist" ? services.filter((s) => s.category === "hair").map((s) => s.id) : [],
+                email: `${id}@salon.local`,
+                serviceIds:
+                  role === "stylist"
+                    ? services.filter((s) => s.category === department).map((s) => s.id)
+                    : [],
                 hours: [
                   ...[1, 2, 3, 4, 5, 6].map((day) => ({ day, start: "09:00", end: "19:00" })),
                   { day: 0, start: "00:00", end: "00:00", off: true },
@@ -223,9 +227,16 @@ function AdminStaff() {
             <Input name="phone" required placeholder="+255" />
             <Label className="mt-4">Role</Label>
             <select name="role" className="h-13 w-full rounded-2xl border border-line bg-surface px-4 text-body">
-              <option value="stylist">Stylist</option>
+              <option value="stylist">Stylist (department)</option>
               <option value="receptionist">Receptionist</option>
               <option value="manager">Manager</option>
+            </select>
+            <Label className="mt-4">Department</Label>
+            <select name="department" className="h-13 w-full rounded-2xl border border-line bg-surface px-4 text-body">
+              <option value="hair">Hair</option>
+              <option value="nails">Nails</option>
+              <option value="makeup">Makeup</option>
+              <option value="treatments">Treatments</option>
             </select>
             <div className="mt-6 grid grid-cols-2 gap-2">
               <Button type="button" variant="secondary" className="h-12" onClick={() => setOpen(false)}>

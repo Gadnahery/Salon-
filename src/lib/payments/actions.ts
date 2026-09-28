@@ -16,13 +16,15 @@ export const collectPaymentFn = createServerFn({ method: "POST" })
   .validator(collectSchema)
   .handler(async ({ data }) => {
     const { collectHarakapay } = await import("./harakapay.server");
-    const { getRequestUrl } = await import("@tanstack/react-start/server");
     let webhookUrl: string | undefined;
     try {
+      const { getRequestUrl } = await import("@tanstack/react-start/server");
       const url = getRequestUrl();
-      webhookUrl = `${url.origin}/api/payments/webhook`;
+      if (url?.origin?.startsWith("http")) {
+        webhookUrl = `${url.origin}/api/payments/webhook`;
+      }
     } catch {
-      webhookUrl = undefined;
+      /* fallback inside collectHarakapay */
     }
     return collectHarakapay({ ...data, webhookUrl });
   });
@@ -33,3 +35,8 @@ export const checkPaymentFn = createServerFn({ method: "POST" })
     const { harakapayStatus } = await import("./harakapay.server");
     return harakapayStatus(data.orderId);
   });
+
+export const paymentBalanceFn = createServerFn({ method: "GET" }).handler(async () => {
+  const { harakapayBalance } = await import("./harakapay.server");
+  return harakapayBalance();
+});
