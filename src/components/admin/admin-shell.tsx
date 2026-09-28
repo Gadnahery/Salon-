@@ -1,5 +1,6 @@
 import { NotifyPrompt } from "@/components/salon/notify-prompt";
 import { InstallPrompt } from "@/components/salon/install-prompt";
+import { StaffAlertWatcher } from "@/components/staff/staff-alert-watcher";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
@@ -120,6 +121,7 @@ export function AdminShell() {
       )}
 
       <div className="lg:pl-60">
+        <StaffAlertWatcher />
         <NotifyPrompt />
         <InstallPrompt portal="admin" />
         <Outlet />

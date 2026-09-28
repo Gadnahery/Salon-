@@ -359,16 +359,16 @@ export const useSalonStore = create<SalonState>()(
           bookingCounter: bookingCounter + 1,
           notices: [
             {
-              id: `n-nb-${Date.now()}`,
+              id: `n-nb-${id}`,
               title: "New booking request",
-              body: `${appt.customerName} requested ${service.name} on ${appt.date} at ${appt.time}. Confirm to open payment.`,
+              body: `${appt.customerName} requested ${service.name} on ${appt.date} at ${appt.time}. Accept so they can pay.`,
               time: new Date().toISOString(),
               read: false,
               appointmentId: id,
               audience: "staff" as const,
             },
             {
-              id: `n-nbc-${Date.now()}`,
+              id: `n-nbc-${id}`,
               title: "Request sent",
               body: "Waiting for the salon to confirm your time. You will pay after confirmation.",
               time: new Date().toISOString(),
@@ -379,17 +379,20 @@ export const useSalonStore = create<SalonState>()(
             ...get().notices,
           ],
         });
-        try {
-          notifyEvent(
-            "New booking request",
-            `${appt.customerName} · ${service.name} · ${appt.date} ${appt.time}`,
-            `/staff/appointments/${id}`,
-            `req-${id}`,
-          );
-        } catch {
-          /* ignore */
-        }
-        persistOps({ appointment: appt, payment });
+        persistOps({
+          appointment: appt,
+          notices: [
+            {
+              id: `n-nb-${id}`,
+              title: "New booking request",
+              body: `${appt.customerName} requested ${service.name} on ${appt.date} at ${appt.time}. Accept so they can pay.`,
+              time: new Date().toISOString(),
+              read: false,
+              appointmentId: id,
+              audience: "staff" as const,
+            },
+          ],
+        });
         return appt;
       },
       confirmHeld: (id, orderId) => {

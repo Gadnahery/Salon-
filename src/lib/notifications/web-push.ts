@@ -35,6 +35,7 @@ export function showBrowserNotification(
       icon: "/icons/booking-192.png",
       badge: "/icons/booking-192.png",
       data: options?.data,
+      requireInteraction: true,
     });
     n.onclick = () => {
       window.focus();
