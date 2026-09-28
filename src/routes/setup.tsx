@@ -103,14 +103,24 @@ function Setup() {
   if (needed === false) {
     return (
       <main className="grid min-h-dvh place-items-center bg-bg px-5 text-center">
-        <div>
-          <p className="text-body">Setup is already complete.</p>
+        <div className="max-w-sm">
+          <p className="text-body">An admin account may already exist.</p>
           <p className="mt-2 text-support text-muted">
-            Sign in with <strong>gadnahery7@gmail.com</strong> at the staff login.
+            Try signing in with <strong>gadnahery7@gmail.com</strong> and your password.
           </p>
-          <a href="/login" className="mt-4 inline-block text-support text-ink underline underline-offset-4">
+          <a
+            href="/login"
+            className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-ink text-white"
+          >
             Go to sign in
           </a>
+          <button
+            type="button"
+            className="mt-4 w-full text-support text-muted underline underline-offset-4"
+            onClick={() => setNeeded(true)}
+          >
+            Create / claim admin anyway
+          </button>
         </div>
       </main>
     );

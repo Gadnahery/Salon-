@@ -46,7 +46,11 @@ export const staffSetupNeededFn = createServerFn({ method: "GET" }).handler(asyn
   try {
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
-    const rows = await sql<{ count: string }>`select count(*)::text as count from salon_staff_accounts`;
+    // Only an active admin blocks first-time setup (not empty/stale rows).
+    const rows = await sql<{ count: string }>`
+      select count(*)::text as count from salon_staff_accounts
+      where role = 'admin' and active = true
+    `;
     return (rows[0]?.count ?? "0") === "0";
   } catch {
     // Missing table / DB not ready → still allow setup form (do not treat as complete).
@@ -65,17 +69,38 @@ export const claimFirstAdminFn = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<StaffAccount> => {
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
-    const existing = await sql<{ count: string }>`select count(*)::text as count from salon_staff_accounts`;
+    const existing = await sql<{ count: string }>`
+      select count(*)::text as count from salon_staff_accounts
+      where role = 'admin' and active = true
+    `;
     if ((existing[0]?.count ?? "0") !== "0") {
-      throw new Error("Setup already completed — sign in instead.");
+      // Already have an admin — if this user is that admin, return them; else block.
+      const mine = await sql<{ id: string; email: string; name: string; role: StaffRole; team_member_id: string | null }>`
+        select id, email, name, role, team_member_id from salon_staff_accounts
+        where id = ${context.userId} and active = true
+      `;
+      if (mine[0]?.role === "admin") {
+        return {
+          id: mine[0].id,
+          email: mine[0].email,
+          name: mine[0].name,
+          role: "admin",
+          teamMemberId: mine[0].team_member_id,
+        };
+      }
+      throw new Error("Setup already completed — sign in at /login instead.");
     }
     const users = await sql<{ email: string; name: string }>`select email, name from "user" where id = ${context.userId}`;
     const user = users[0];
-    if (!user) throw new Error("User not found");
+    if (!user) throw new Error("User not found — sign up again on /setup.");
     await sql`
       insert into salon_staff_accounts (id, email, name, role, active)
       values (${context.userId}, ${user.email}, ${user.name}, 'admin', true)
-      on conflict (id) do nothing
+      on conflict (id) do update set
+        email = excluded.email,
+        name = excluded.name,
+        role = 'admin',
+        active = true
     `;
     return { id: context.userId, email: user.email, name: user.name, role: "admin", teamMemberId: null };
   });
