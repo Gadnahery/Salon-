@@ -3,6 +3,7 @@ import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Home, Calendar, Plus, User, Bell } from "lucide-react";
 import { BookSheet } from "./book-sheet";
 import { NotifyPrompt } from "./notify-prompt";
+import { InstallPrompt } from "./install-prompt";
 import { LogoWord } from "./logo";
 import { Button } from "@/components/ui/button";
 import { useSalonStore } from "@/lib/salon/store";
@@ -147,6 +148,7 @@ export function AppShell() {
 
       <BookSheet open={bookOpen} onOpenChange={setBookOpen} />
       <NotifyPrompt />
+      <InstallPrompt portal="customer" />
 
       {toast && (
         <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-5 lg:bottom-8">

@@ -21,13 +21,13 @@ export async function registerBookingServiceWorker(): Promise<ServiceWorkerRegis
   }
 }
 
-export type PushPortal = "staff" | "admin";
+export type PushPortal = "staff" | "admin" | "customer";
 
 /**
- * Subscribe this device to Web Push for staff/admin.
+ * Subscribe this device to Web Push (staff, admin, or customer).
  * Saves subscription on the server so we can notify when the app is closed.
  */
-export async function subscribeStaffPush(opts: {
+export async function subscribePush(opts: {
   portal: PushPortal;
   actorId?: string;
 }): Promise<{ ok: boolean; reason?: string }> {
@@ -83,4 +83,13 @@ export function pushSupported(): boolean {
     "PushManager" in window &&
     getNotifyPermission() !== "unsupported"
   );
+}
+
+
+/** @deprecated use subscribePush */
+export async function subscribeStaffPush(opts: {
+  portal: Exclude<PushPortal, "customer">;
+  actorId?: string;
+}) {
+  return subscribePush(opts);
 }

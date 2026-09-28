@@ -6,9 +6,9 @@ import {
   notificationSupported,
   requestNotifyPermission,
 } from "@/lib/notifications/web-push";
-import { subscribeStaffPush } from "@/lib/notifications/push-client";
+import { subscribePush } from "@/lib/notifications/push-client";
 
-type Portal = "staff" | "admin";
+type Portal = "staff" | "admin" | "customer";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -32,9 +32,8 @@ function isIos(): boolean {
 }
 
 /**
- * Staff / admin only: prompt to install Booking as a home-screen app
- * so they stay signed in and can receive browser notifications.
- * Customer is not prompted (by design).
+ * Prompt to install Booking and enable push notifications.
+ * Used for staff, admin, and customers.
  */
 export function InstallPrompt({ portal }: { portal: Portal }) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
@@ -76,11 +75,18 @@ export function InstallPrompt({ portal }: { portal: Portal }) {
 
   if (!visible || isStandalone()) return null;
 
-  const title = portal === "admin" ? "Install Admin app" : "Install Staff app";
+  const title =
+    portal === "admin"
+      ? "Install Admin app"
+      : portal === "staff"
+        ? "Install Staff app"
+        : "Install Booking";
   const body =
     portal === "admin"
       ? "Add Booking Admin to your home screen. Stay signed in and get payment & booking alerts on your phone."
-      : "Add Booking Staff to your home screen. Stay signed in and get new request alerts so you can confirm bookings.";
+      : portal === "staff"
+        ? "Add Booking Staff to your home screen. Stay signed in and get new request alerts so you can confirm bookings."
+        : "Add Booking to your home screen. Allow notifications for confirmations, payment, and appointment reminders.";
 
   function dismiss() {
     localStorage.setItem(KEY(portal), "1");
@@ -93,7 +99,7 @@ export function InstallPrompt({ portal }: { portal: Portal }) {
       await requestNotifyPermission();
     }
     // Register Web Push so alerts work when app is closed
-    void subscribeStaffPush({ portal });
+    void subscribePush({ portal });
     if (deferred) {
       try {
         await deferred.prompt();
@@ -124,8 +130,8 @@ export function InstallPrompt({ portal }: { portal: Portal }) {
               <p className="mt-2 flex items-start gap-2 text-support text-muted">
                 <Share className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
                 <span>
-                  On iPhone: tap <strong>Share</strong> → <strong>Add to Home Screen</strong>. Open that icon to stay in{" "}
-                  {portal === "admin" ? "Admin" : "Staff"}.
+                  On iPhone: tap <strong>Share</strong> → <strong>Add to Home Screen</strong>. Open that icon for{" "}
+                  {portal === "admin" ? "Admin" : portal === "staff" ? "Staff" : "your bookings"}.
                 </span>
               </p>
             )}

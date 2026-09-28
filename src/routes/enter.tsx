@@ -6,6 +6,7 @@ import { LogoWord } from "@/components/salon/logo";
 import { useSalonStore } from "@/lib/salon/store";
 import { customerIdFromPhone, isValidLocalTzPhone, toLocalTzPhone } from "@/lib/salon/format";
 import { cn } from "@/lib/utils";
+import { subscribePush, registerBookingServiceWorker } from "@/lib/notifications/push-client";
 
 type Search = { as?: "staff" | "admin" | "customer" };
 
@@ -58,6 +59,8 @@ function EnterPage() {
       name: displayName,
       role: "customer",
     });
+    void registerBookingServiceWorker();
+    void subscribePush({ portal: "customer", actorId });
     void navigate({ to: "/app" });
   }
 

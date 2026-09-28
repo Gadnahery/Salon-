@@ -8,7 +8,7 @@ const subSchema = z.object({
   endpoint: z.string().min(8),
   keysP256dh: z.string().min(8),
   keysAuth: z.string().min(4),
-  portal: z.enum(["staff", "admin"]),
+  portal: z.enum(["staff", "admin", "customer"]),
   actorId: z.string().optional(),
 });
 
@@ -17,8 +17,9 @@ const notifySchema = z.object({
   body: z.string(),
   url: z.string().optional(),
   tag: z.string().optional(),
-  /** staff | admin | both */
-  audience: z.enum(["staff", "admin", "both"]).default("both"),
+  audience: z.enum(["staff", "admin", "customer", "both"]).default("both"),
+  /** When set, only push devices for this customer/staff actor */
+  actorId: z.string().optional(),
 });
 
 function configureWebPush() {
@@ -56,12 +57,19 @@ export const sendStaffPushFn = createServerFn({ method: "POST" })
     configureWebPush();
     const rows = await supabaseSelect<SubRow>(
       "salon_push_subscriptions",
-      "select=endpoint,keys_p256dh,keys_auth,portal",
+      "select=endpoint,keys_p256dh,keys_auth,portal,actor_id",
     );
 
-    const targets = rows.filter((r) => {
-      if (data.audience === "both") return r.portal === "staff" || r.portal === "admin";
-      return r.portal === data.audience;
+    type SubRowFull = SubRow & { actor_id?: string | null };
+    const fullRows = rows as SubRowFull[];
+    const targets = fullRows.filter((r) => {
+      if (data.audience === "both") {
+        if (!(r.portal === "staff" || r.portal === "admin")) return false;
+      } else if (r.portal !== data.audience) {
+        return false;
+      }
+      if (data.actorId && r.actor_id && r.actor_id !== data.actorId) return false;
+      return true;
     });
 
     const payload = JSON.stringify({

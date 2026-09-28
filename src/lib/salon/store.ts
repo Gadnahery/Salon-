@@ -450,6 +450,31 @@ export const useSalonStore = create<SalonState>()(
           queue: syncQueue(appointments, get().queue),
         });
         persistOps({ appointment: confirmed, payment: paid, notices, audit });
+        void import("@/lib/notifications/push-actions")
+          .then(({ sendStaffPushFn }) =>
+            Promise.all([
+              sendStaffPushFn({
+                data: {
+                  title: "You're booked",
+                  body: `${confirmed.date} at ${confirmed.time}. Payment received — see you soon.`,
+                  url: `/app/appointments/${id}`,
+                  tag: `booked-${id}`,
+                  audience: "customer",
+                  actorId: confirmed.customerId,
+                },
+              }),
+              sendStaffPushFn({
+                data: {
+                  title: "Payment received",
+                  body: `${confirmed.customerName} paid · ${confirmed.date} ${confirmed.time}`,
+                  url: `/staff/appointments/${id}`,
+                  tag: `paid-${id}`,
+                  audience: "both",
+                },
+              }),
+            ]),
+          )
+          .catch(() => {});
         return confirmed;
       },
       expireHeld: (id) => {
