@@ -6,7 +6,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-export const DEFAULT_APP_NAME = "Grok App";
+export const DEFAULT_APP_NAME = "Booking";
 export const OG_SERVICE_URL_DEFAULT = "https://og.grok.me";
 export const OG_SITE_REL_PATH = "src/lib/og/site.json";
 
@@ -158,18 +158,39 @@ export function renderInstallPageHtml(template, { host, url } = {}) {
 }
 
 export function renderWebManifest(hostHeader) {
-  const name = appNameFromHost(hostHeader);
+  // Product name is always Booking (reusable booking system), not host slug.
+  const name = "Booking";
   return JSON.stringify(
     {
       name,
-      short_name: name,
+      short_name: "Booking",
+      description: "Book appointments and manage your schedule.",
       id: "/",
       start_url: "/",
       scope: "/",
       display: "standalone",
-      background_color: "#000000",
-      theme_color: "#000000",
+      orientation: "portrait-primary",
+      background_color: "#F7F6F3",
+      theme_color: "#1A1A1A",
       icons: [
+        {
+          src: "/icons/booking-192.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: "/icons/booking-512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: "/icons/booking-192.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "maskable",
+        },
         {
           src: "/__grok/icon-180.png",
           sizes: "180x180",

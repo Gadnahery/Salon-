@@ -32,8 +32,8 @@ export function showBrowserNotification(
     const n = new Notification(title, {
       body: options?.body,
       tag: options?.tag ?? `salon-${Date.now()}`,
-      icon: "/__grok/icon-180.png",
-      badge: "/__grok/icon-180.png",
+      icon: "/icons/booking-192.png",
+      badge: "/icons/booking-192.png",
       data: options?.data,
     });
     n.onclick = () => {
@@ -58,4 +58,19 @@ export function hasPromptedNotify(): boolean {
 export function markPromptedNotify(): void {
   if (typeof localStorage === "undefined") return;
   localStorage.setItem(PROMPT_KEY, "1");
+}
+
+
+/** Fire a browser notification when permission is granted. Safe no-op otherwise. */
+export function notifyEvent(
+  title: string,
+  body: string,
+  url?: string,
+  tag?: string,
+): void {
+  showBrowserNotification(title, {
+    body,
+    tag: tag ?? `booking-${Date.now()}`,
+    data: url ? { url } : undefined,
+  });
 }

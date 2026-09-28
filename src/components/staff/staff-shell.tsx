@@ -1,3 +1,4 @@
+import { NotifyPrompt } from "@/components/salon/notify-prompt";
 import { useEffect } from "react";
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, LayoutList, MoreHorizontal, SunMedium } from "lucide-react";
@@ -73,6 +74,7 @@ export function StaffShell() {
       </aside>
 
       <div className={cn("lg:pl-56", hideNav ? "pb-0" : "pb-24 lg:pb-0")}>
+        <NotifyPrompt />
         <Outlet />
       </div>
 

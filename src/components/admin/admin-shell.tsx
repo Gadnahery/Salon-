@@ -1,3 +1,4 @@
+import { NotifyPrompt } from "@/components/salon/notify-prompt";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
@@ -118,6 +119,7 @@ export function AdminShell() {
       )}
 
       <div className="lg:pl-60">
+        <NotifyPrompt />
         <Outlet />
       </div>
 

@@ -53,6 +53,7 @@ export type TeamMember = Stylist & {
 export type PaymentMethod = "mpesa" | "airtel" | "tigo";
 
 export type AppointmentStatus =
+  | "requested"
   | "payment_pending"
   | "confirmed"
   | "checked_in"

@@ -8,6 +8,7 @@ export const MIN_LEAD_MINUTES = 30;
 export const CANCEL_DEPOSIT_HOURS = 24;
 
 export const STATUS_FLOW: Record<AppointmentStatus, AppointmentStatus[]> = {
+  requested: ["payment_pending", "cancelled", "expired"],
   payment_pending: ["confirmed", "expired", "cancelled"],
   confirmed: ["checked_in", "cancelled", "no_show", "confirmed"],
   checked_in: ["in_service", "cancelled", "no_show"],

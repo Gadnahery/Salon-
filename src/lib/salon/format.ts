@@ -79,6 +79,7 @@ export function paymentLabel(m: PaymentMethod) {
 
 export function statusLabel(s: AppointmentStatus) {
   const map: Record<AppointmentStatus, string> = {
+    requested: "Awaiting confirmation",
     payment_pending: "Payment pending",
     confirmed: "Confirmed",
     checked_in: "Checked in",

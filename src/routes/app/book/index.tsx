@@ -131,6 +131,28 @@ function BookPage() {
     go(step - 1);
   }
 
+  function submitRequest() {
+    if (!service) return;
+    const phone = toLocalTzPhone(profile.mpesaPhone || profile.phone);
+    if (!isValidLocalTzPhone(phone)) {
+      setPayError(true);
+      setPayMessage("Enter a phone like 07XXXXXXXX.");
+      return;
+    }
+    setProfile({ phone, mpesaPhone: phone });
+    const sid = customerIdFromPhone(phone);
+    if (session.portal === "customer" && session.actorId !== sid) {
+      enterAs({ ...session, actorId: sid, name: profile.name || session.name });
+    }
+    const held = holdBooking();
+    if (!held) {
+      setPayError(true);
+      setPayMessage("We couldn't hold this time. Choose another slot.");
+      return;
+    }
+    void navigate({ to: "/app/book/success", search: { id: held.id } });
+  }
+
   async function pay() {
     if (!service) return;
     if (paying !== "idle") return; // hard block double tap
@@ -609,7 +631,7 @@ function BookPage() {
 
             <p className="mt-8 text-body font-medium">How you pay</p>
             <p className="mt-2 text-support text-muted">
-              We&apos;ll send a mobile-money prompt to your phone number. The network is detected automatically from your number.
+              First the salon confirms your time. After confirmation you pay the deposit by mobile money on your phone.
             </p>
             {payError && (
               <div className="mt-5 rounded-2xl border border-brand/30 bg-brand-soft p-4">
@@ -660,9 +682,9 @@ function BookPage() {
             <Button
               className="h-13 w-full bg-ink text-white"
               disabled={!canContinue}
-              onClick={() => void pay()}
+              onClick={() => submitRequest()}
             >
-              Pay {formatTsh(deposit)}
+              Request appointment
             </Button>
           )}
           <button type="button" onClick={back} className="mt-3 w-full text-center text-support text-muted">

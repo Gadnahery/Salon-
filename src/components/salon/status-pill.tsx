@@ -3,6 +3,7 @@ import { statusLabel } from "@/lib/salon/format";
 import type { AppointmentStatus, QueueStatus, ShiftStatus } from "@/lib/salon/types";
 
 const tone: Record<string, string> = {
+  requested: "text-warning",
   payment_pending: "text-warning",
   confirmed: "text-muted",
   checked_in: "text-ink",
@@ -20,6 +21,7 @@ const tone: Record<string, string> = {
 };
 
 const dot: Record<string, string> = {
+  requested: "bg-warning",
   payment_pending: "bg-warning",
   confirmed: "bg-muted",
   checked_in: "bg-ink",

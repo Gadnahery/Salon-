@@ -1,4 +1,5 @@
 import { customerIdFromPhone, phonesMatch, toLocalTzPhone } from "@/lib/salon/format";
+import { notifyEvent } from "@/lib/notifications/web-push";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { parseISO } from "date-fns";
@@ -343,7 +344,7 @@ export const useSalonStore = create<SalonState>()(
           deposit,
           remaining,
           paymentMethod: draft.paymentMethod,
-          status: "payment_pending",
+          status: "requested",
           createdAt: new Date().toISOString(),
           customerId,
           customerName: profile.name || session.name,
@@ -352,26 +353,15 @@ export const useSalonStore = create<SalonState>()(
           needsProviderConfirm: true,
           providerConfirmed: false,
         };
-        const payment = makePayment({
-          bookingId: id,
-          customerId,
-          customerName: profile.name || session.name,
-          amount: deposit,
-          method: draft.paymentMethod,
-          phone: profile.mpesaPhone || profile.phone,
-          description: `Deposit ${id}`,
-          kind: "deposit",
-          status: "pending",
-        });
+        // No payment yet — staff must confirm the slot first.
         set({
           appointments: [appt, ...get().appointments],
-          payments: [payment, ...get().payments],
           bookingCounter: bookingCounter + 1,
           notices: [
             {
               id: `n-nb-${Date.now()}`,
               title: "New booking request",
-              body: `${appt.customerName} booked ${service.name} on ${appt.date} at ${appt.time}.`,
+              body: `${appt.customerName} requested ${service.name} on ${appt.date} at ${appt.time}. Confirm to open payment.`,
               time: new Date().toISOString(),
               read: false,
               appointmentId: id,
@@ -379,8 +369,8 @@ export const useSalonStore = create<SalonState>()(
             },
             {
               id: `n-nbc-${Date.now()}`,
-              title: "Booking held",
-              body: "Complete payment to reserve your time.",
+              title: "Request sent",
+              body: "Waiting for the salon to confirm your time. You will pay after confirmation.",
               time: new Date().toISOString(),
               read: false,
               appointmentId: id,
@@ -389,6 +379,16 @@ export const useSalonStore = create<SalonState>()(
             ...get().notices,
           ],
         });
+        try {
+          notifyEvent(
+            "New booking request",
+            `${appt.customerName} · ${service.name} · ${appt.date} ${appt.time}`,
+            `/staff/appointments/${id}`,
+            `req-${id}`,
+          );
+        } catch {
+          /* ignore */
+        }
         persistOps({ appointment: appt, payment });
         return appt;
       },
@@ -1033,15 +1033,23 @@ export const useSalonStore = create<SalonState>()(
           ),
         }),
       confirmProvider: (id) => {
+        const current = get().appointments.find((a) => a.id === id);
         set({
           appointments: get().appointments.map((a) =>
-            a.id === id ? { ...a, providerConfirmed: true, needsProviderConfirm: false } : a,
+            a.id === id
+              ? {
+                  ...a,
+                  providerConfirmed: true,
+                  needsProviderConfirm: false,
+                  status: a.status === "requested" ? ("payment_pending" as const) : a.status,
+                }
+              : a,
           ),
           notices: [
             {
               id: `n-pc-${Date.now()}`,
-              title: "Booking confirmed by provider",
-              body: "Your stylist confirmed the appointment.",
+              title: "Time confirmed — please pay",
+              body: "Your slot is held. Complete payment to finish the booking.",
               time: new Date().toISOString(),
               read: false,
               appointmentId: id,
@@ -1050,6 +1058,18 @@ export const useSalonStore = create<SalonState>()(
             ...get().notices,
           ],
         });
+        try {
+          notifyEvent(
+            "Time confirmed — pay now",
+            current
+              ? `${current.date} at ${current.time}. Open the app to pay your deposit.`
+              : "Open the app to pay your deposit.",
+            current ? `/app/appointments/${id}` : "/app/appointments",
+            `pay-${id}`,
+          );
+        } catch {
+          /* ignore */
+        }
       },
       declineProvider: (id) => {
         get().cancelAppointment(id);

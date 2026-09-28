@@ -54,7 +54,7 @@ export function NotifyPrompt() {
           <div className="flex-1">
             <p className="text-body font-medium">Stay updated</p>
             <p className="mt-1 text-support text-muted">
-              Get booking confirmations, reminders, and when your stylist is ready.
+              Get alerts for new requests, confirmations, and payments — even when Booking is in the background.
             </p>
             <div className="mt-3 flex gap-2">
               <Button size="sm" className="h-10 flex-1" disabled={busy} onClick={() => void enable()}>
