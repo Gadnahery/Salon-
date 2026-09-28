@@ -1,3 +1,4 @@
+import { customerIdFromPhone, phonesMatch, toLocalTzPhone } from "@/lib/salon/format";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { parseISO } from "date-fns";
@@ -321,10 +322,10 @@ export const useSalonStore = create<SalonState>()(
         const id = nextBookingId(bookingCounter);
         const session = get().session;
         const customerId =
-          session.portal === "customer" && session.actorId !== "guest"
+          session.portal === "customer" && session.actorId && session.actorId !== "guest"
             ? session.actorId
             : profile.phone
-              ? `cust-${profile.phone.replace(/\D/g, "").slice(-9)}`
+              ? customerIdFromPhone(profile.phone)
               : CUSTOMER_ID;
         const appt: Appointment = {
           id,
@@ -695,19 +696,27 @@ export const useSalonStore = create<SalonState>()(
         });
       },
       upsertCustomer: (c) => {
+        const phone = toLocalTzPhone(c.phone);
+        const id = c.id || customerIdFromPhone(phone);
         const existing = get().customers.find(
-          (x) => x.id === c.id || x.phone.replace(/\s/g, "") === c.phone.replace(/\s/g, ""),
+          (x) => x.id === id || phonesMatch(x.phone, phone),
         );
         if (existing) {
-          const next = { ...existing, ...c, id: existing.id };
+          const next = {
+            ...existing,
+            ...c,
+            id: existing.id,
+            phone,
+            name: (c.name && c.name.trim()) || existing.name,
+          };
           set({ customers: get().customers.map((x) => (x.id === existing.id ? next : x)) });
           persistOps({ customer: next });
           return next;
         }
         const created: CustomerRecord = {
-          id: `cust-${Date.now()}`,
+          id,
           name: c.name,
-          phone: c.phone,
+          phone,
           since: new Date().toISOString().slice(0, 10),
           notes: c.notes ?? "",
           preferredStylistId: c.preferredStylistId,
@@ -1131,8 +1140,14 @@ export const useSalonStore = create<SalonState>()(
 export function useMyAppointments() {
   const appointments = useSalonStore((s) => s.appointments);
   const session = useSalonStore((s) => s.session);
+  const profile = useSalonStore((s) => s.profile);
   if (session.portal !== "customer") return appointments;
-  return appointments.filter((a) => a.customerId === session.actorId);
+  return appointments.filter((a) => {
+    if (a.customerId === session.actorId) return true;
+    // Recover bookings made under old name-based ids for the same phone
+    if (profile.phone && phonesMatch(a.customerPhone, profile.phone)) return true;
+    return false;
+  });
 }
 
 export function useUpcoming() {

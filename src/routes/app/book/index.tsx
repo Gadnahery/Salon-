@@ -21,6 +21,7 @@ import {
   toLocalTzPhone,
   isValidLocalTzPhone,
   displayLocalPhone,
+  customerIdFromPhone,
 } from "@/lib/salon/format";
 import { availableSlots, dateHasRealAvailability, quote } from "@/lib/engines";
 import { useSalonStore } from "@/lib/salon/store";
@@ -59,6 +60,8 @@ function BookPage() {
   const attachPaymentOrder = useSalonStore((s) => s.attachPaymentOrder);
   const profile = useSalonStore((s) => s.profile);
   const setProfile = useSalonStore((s) => s.setProfile);
+  const enterAs = useSalonStore((s) => s.enterAs);
+  const session = useSalonStore((s) => s.session);
   const appointments = useSalonStore((s) => s.appointments);
   const joinWaitlist = useSalonStore((s) => s.joinWaitlist);
   const session = useSalonStore((s) => s.session);
@@ -146,6 +149,11 @@ function BookPage() {
       return;
     }
     setProfile({ phone, mpesaPhone: phone });
+    // Keep session bound to phone identity
+    const sid = customerIdFromPhone(phone);
+    if (session.portal === "customer" && session.actorId !== sid) {
+      enterAs({ ...session, actorId: sid, name: profile.name || session.name });
+    }
 
     // If we already sent USSD for a held booking, only check status — never second push
     const held = holdBooking();

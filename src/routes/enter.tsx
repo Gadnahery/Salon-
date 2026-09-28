@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { LogoWord } from "@/components/salon/logo";
 import { useSalonStore } from "@/lib/salon/store";
-import { isValidLocalTzPhone, toLocalTzPhone } from "@/lib/salon/format";
+import { customerIdFromPhone, isValidLocalTzPhone, toLocalTzPhone } from "@/lib/salon/format";
 import { cn } from "@/lib/utils";
 
 type Search = { as?: "staff" | "admin" | "customer" };
@@ -16,15 +16,11 @@ export const Route = createFileRoute("/enter")({
   component: EnterPage,
 });
 
-function slugId(name: string, phone: string) {
-  const clean = phone.replace(/\D/g, "").slice(-9) || "guest";
-  const n = name.trim().toLowerCase().replace(/\s+/g, "-").slice(0, 24) || "customer";
-  return `cust-${n}-${clean}`;
-}
-
 function EnterPage() {
   const enterAs = useSalonStore((s) => s.enterAs);
   const setProfile = useSalonStore((s) => s.setProfile);
+  const upsertCustomer = useSalonStore((s) => s.upsertCustomer);
+  const customers = useSalonStore((s) => s.customers);
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -33,23 +29,33 @@ function EnterPage() {
 
   function continueAsCustomer(e: React.FormEvent) {
     e.preventDefault();
-    const n = name.trim();
+    const n = name.trim().replace(/\s+/g, " ");
     const p = toLocalTzPhone(phone);
     if (!n || n.length < 2) {
       setError("Please enter your name.");
       return;
     }
-    if (!p || p.replace(/\D/g, "").length < 9) {
+    if (!isValidLocalTzPhone(p)) {
       setError("Use a Tanzanian number like 07XXXXXXXX or 06XXXXXXXX.");
       return;
     }
     setError(null);
-    const actorId = slugId(n, p);
-    setProfile({ name: n, phone: p, mpesaPhone: p });
+
+    // Identity = phone only. Name is display; casing/spelling never creates a new account.
+    const actorId = customerIdFromPhone(p);
+    const existing = customers.find(
+      (c) => c.id === actorId || c.phone.replace(/\D/g, "").slice(-9) === p.replace(/\D/g, "").slice(-9),
+    );
+    // Keep a sensible display name: prefer longer typed name, else existing
+    const displayName =
+      existing && existing.name.trim().length > n.length ? existing.name.trim() : n;
+
+    upsertCustomer({ id: actorId, name: displayName, phone: p });
+    setProfile({ name: displayName, phone: p, mpesaPhone: p });
     enterAs({
       portal: "customer",
       actorId,
-      name: n,
+      name: displayName,
       role: "customer",
     });
     void navigate({ to: "/app" });
@@ -61,7 +67,7 @@ function EnterPage() {
       <p className="mt-8 text-micro uppercase tracking-[0.16em] text-muted">Booking</p>
       <h1 className="mt-2 text-title font-normal">Welcome</h1>
       <p className="mt-2 text-body text-muted">
-        Customers continue with name and phone. Staff and admin use a secure login.
+        Enter your name and phone. Your phone number is your account — spelling of the name does not matter.
       </p>
 
       <section className="mt-10">
@@ -102,7 +108,7 @@ function EnterPage() {
             Continue
           </Button>
           <p className="text-center text-support text-muted">
-            No OTP. Your number is used for bookings and payment prompts only.
+            Your phone is your login. Name is only for greetings and bookings.
           </p>
         </form>
       </section>

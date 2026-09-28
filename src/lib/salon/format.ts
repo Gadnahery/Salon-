@@ -225,3 +225,20 @@ export function displayLocalPhone(input: string): string {
 export function isValidLocalTzPhone(input: string): boolean {
   return /^0[67]\d{8}$/.test(toLocalTzPhone(input));
 }
+
+
+/** Stable customer id from phone only (name never affects identity). */
+export function customerIdFromPhone(phone: string): string {
+  const local = toLocalTzPhone(phone);
+  const digits = local.replace(/\D/g, "");
+  // Prefer full local 10-digit 07…; fall back to last 9
+  const key = digits.length >= 10 ? digits.slice(-10) : digits.slice(-9);
+  return `cust-${key || "guest"}`;
+}
+
+export function phonesMatch(a: string, b: string): boolean {
+  const da = toLocalTzPhone(a).replace(/\D/g, "");
+  const db = toLocalTzPhone(b).replace(/\D/g, "");
+  if (!da || !db) return false;
+  return da === db || da.slice(-9) === db.slice(-9);
+}
