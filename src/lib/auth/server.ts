@@ -104,9 +104,17 @@ const LOCAL_DEV_ORIGINS: string[] = [
   "http://[::1]:8080",
 ];
 const baseURL = explicitBaseURL ?? {
-  // Include loopback hosts so dynamic baseURL resolves for local email/password
-  // (not only the preview wildcard).
-  allowedHosts: [...previewAllowedHosts, "localhost", "127.0.0.1", "[::1]"],
+  // Include loopback + Vercel hosts so dynamic baseURL resolves for email/password
+  // sign-up/sign-in on production and preview deployments.
+  allowedHosts: [
+    ...previewAllowedHosts,
+    "localhost",
+    "127.0.0.1",
+    "[::1]",
+    "*.vercel.app",
+    "wsalon-gadnaherys-projects.vercel.app",
+    "wsalon-git-main-gadnaherys-projects.vercel.app",
+  ],
   // `auto` → trust both http:// and https:// expansions of allowedHosts
   // (preview is https; local dev is http).
   protocol: "auto" as const,
@@ -115,15 +123,30 @@ const baseURL = explicitBaseURL ?? {
 
 // Origins Better Auth accepts on credentialed POSTs (sign-up/sign-in, etc.).
 // Missing entries here surface as FORBIDDEN "Invalid origin".
-const trustedOrigins: string[] = explicitBaseURL
-  ? [explicitBaseURL, ...LOCAL_DEV_ORIGINS]
-  : [
-      // Host wildcards (matched against Origin's host)
-      ...previewAllowedHosts,
-      // Full-origin wildcards (matched against Origin)
-      ...previewAllowedHosts.flatMap((host) => [`https://${host}`, `http://${host}`]),
-      ...LOCAL_DEV_ORIGINS,
-    ];
+// Vercel production + preview hosts must be trusted or sign-up returns "Invalid origin".
+const VERCEL_TRUSTED: string[] = [
+  "https://*.vercel.app",
+  "*.vercel.app",
+  "https://wsalon-gadnaherys-projects.vercel.app",
+  "https://wsalon-git-main-gadnaherys-projects.vercel.app",
+];
+// Runtime deployment URL (set automatically by Vercel).
+const vercelUrl = env("VERCEL_URL");
+const vercelOrigin = vercelUrl
+  ? vercelUrl.startsWith("http")
+    ? vercelUrl.replace(/\/+$/, "")
+    : `https://${vercelUrl.replace(/\/+$/, "")}`
+  : null;
+
+const trustedOrigins: string[] = [
+  ...(explicitBaseURL ? [explicitBaseURL] : []),
+  ...(vercelOrigin ? [vercelOrigin] : []),
+  ...VERCEL_TRUSTED,
+  ...LOCAL_DEV_ORIGINS,
+  // Preview / sandbox hosts when not on a fixed BETTER_AUTH_URL
+  ...previewAllowedHosts,
+  ...previewAllowedHosts.flatMap((host) => [`https://${host}`, `http://${host}`]),
+];
 
 const databaseUrl = env("DATABASE_URL");
 
