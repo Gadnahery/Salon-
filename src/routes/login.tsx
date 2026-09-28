@@ -3,12 +3,14 @@ import { useState } from "react";
 import { LogoWord } from "@/components/salon/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
-import { authClient } from "@/lib/auth/client";
+import { fetchMyStaffAccount, supabaseSignIn } from "@/lib/auth/supabase-auth";
+import { useSalonStore } from "@/lib/salon/store";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
 function Login() {
   const navigate = useNavigate();
+  const enterAs = useSalonStore((s) => s.enterAs);
   const [email, setEmail] = useState("gadnahery7@gmail.com");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,13 +20,29 @@ function Login() {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const { error: signInError } = await authClient.signIn.email({ email, password });
-    setBusy(false);
-    if (signInError) {
-      setError(signInError.message ?? "Could not sign in. Check your email and password.");
+    const { session, error: signInError } = await supabaseSignIn({ email, password });
+    if (!session) {
+      setBusy(false);
+      setError(signInError ?? "Could not sign in. Check your email and password.");
       return;
     }
-    void navigate({ to: "/enter" });
+    const account = await fetchMyStaffAccount(session.access_token, session.user.id);
+    setBusy(false);
+    if (!account) {
+      setError("Signed in, but this account is not staff/admin. Run /setup first.");
+      return;
+    }
+    enterAs({
+      portal: account.role === "admin" || account.role === "manager" ? "admin" : "staff",
+      actorId: account.id,
+      name: account.name,
+      role: account.role,
+    });
+    if (account.role === "admin" || account.role === "manager") {
+      void navigate({ to: "/admin" });
+    } else {
+      void navigate({ to: "/staff" });
+    }
   }
 
   return (
@@ -34,7 +52,7 @@ function Login() {
           <LogoWord />
         </div>
         <h1 className="mt-6 text-center text-title font-normal">Staff sign in</h1>
-        <p className="mt-1 text-center text-support text-muted">For staff and admin accounts only.</p>
+        <p className="mt-1 text-center text-support text-muted">Supabase Auth — staff and admin only.</p>
 
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
           <div>
@@ -59,13 +77,22 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          {error && <p className="rounded-2xl bg-brand-soft px-4 py-3 text-support text-brand">{error}</p>}
+          {error && (
+            <p className="rounded-2xl bg-brand-soft px-4 py-3 text-support text-brand whitespace-pre-wrap">
+              {error}
+            </p>
+          )}
           <Button type="submit" className="h-13 w-full bg-ink text-white" disabled={busy}>
             {busy ? "Signing in…" : "Sign in"}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-support text-muted">
+          First time?{" "}
+          <Link to="/setup" className="font-medium text-ink underline underline-offset-4">
+            Create admin
+          </Link>
+          {" · "}
           Customer?{" "}
           <Link to="/enter" className="font-medium text-ink underline underline-offset-4">
             Continue here

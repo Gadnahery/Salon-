@@ -1,46 +1,47 @@
 import { useEffect, useState } from "react";
-import { getMyStaffAccountFn, type StaffAccount } from "./staff-actions";
-import { useCurrentUserState } from "./use-current-user";
+import {
+  fetchMyStaffAccount,
+  loadSession,
+  type StaffAccount,
+} from "./supabase-auth";
 
 export type StaffAccountState = {
   account: StaffAccount | null;
-  /** True while the auth session OR the staff-account lookup is still resolving. */
   isPending: boolean;
 };
 
 /**
- * Resolves to the signed-in user's staff/admin account (role + linked team
- * profile), or `null` once we know they have none. Waits out the auth
- * session first so it never fires a lookup for a signed-out visitor.
+ * Resolves staff/admin account from the Supabase Auth session in localStorage.
  */
 export function useStaffAccount(): StaffAccountState {
-  const { user, isPending: userPending } = useCurrentUserState();
   const [account, setAccount] = useState<StaffAccount | null>(null);
-  const [lookupPending, setLookupPending] = useState(true);
+  const [isPending, setIsPending] = useState(true);
 
   useEffect(() => {
-    if (userPending) return;
-    if (!user) {
+    let cancelled = false;
+    const session = loadSession();
+    if (!session) {
       setAccount(null);
-      setLookupPending(false);
+      setIsPending(false);
       return;
     }
-    let cancelled = false;
-    setLookupPending(true);
-    getMyStaffAccountFn()
-      .then((result) => {
-        if (!cancelled) setAccount(result);
+    fetchMyStaffAccount(session.access_token, session.user.id)
+      .then((a) => {
+        if (!cancelled) {
+          setAccount(a);
+          setIsPending(false);
+        }
       })
       .catch(() => {
-        if (!cancelled) setAccount(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLookupPending(false);
+        if (!cancelled) {
+          setAccount(null);
+          setIsPending(false);
+        }
       });
     return () => {
       cancelled = true;
     };
-  }, [user, userPending]);
+  }, []);
 
-  return { account, isPending: userPending || lookupPending };
+  return { account, isPending };
 }

@@ -3,15 +3,18 @@ import { useEffect, useState } from "react";
 import { LogoWord } from "@/components/salon/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
-import { authClient } from "@/lib/auth/client";
-import { bootstrapAdminFn, staffSetupNeededFn } from "@/lib/auth/staff-actions";
+import {
+  bootstrapAdminWithSupabase,
+  countActiveAdmins,
+} from "@/lib/auth/supabase-auth";
+import { useSalonStore } from "@/lib/salon/store";
 
 export const Route = createFileRoute("/setup")({ component: Setup });
 
 function Setup() {
   const navigate = useNavigate();
+  const enterAs = useSalonStore((s) => s.enterAs);
   const [needed, setNeeded] = useState<boolean | null>(null);
-  const [checkError, setCheckError] = useState<string | null>(null);
   const [name, setName] = useState("Lewis");
   const [email, setEmail] = useState("gadnahery7@gmail.com");
   const [password, setPassword] = useState("");
@@ -19,50 +22,32 @@ function Setup() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    staffSetupNeededFn()
-      .then((v) => {
-        setNeeded(v);
-        setCheckError(null);
-      })
-      .catch((err) => {
-        setNeeded(true);
-        setCheckError(
-          err instanceof Error
-            ? err.message
-            : "Could not reach the database. You can still try creating the admin account.",
-        );
-      });
+    countActiveAdmins()
+      .then((n) => setNeeded(n === 0))
+      .catch(() => setNeeded(true));
   }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    try {
-      // Server-side bootstrap: creates Better Auth user + admin staff row.
-      await bootstrapAdminFn({
-        data: { email: email.trim(), password, name: name.trim() || "Admin" },
-      });
-      // Best-effort browser session so /admin works immediately.
-      const { error: signInError } = await authClient.signIn.email({
-        email: email.trim(),
-        password,
-      });
-      if (signInError) {
-        // Account exists; send them to login with a clear message.
-        setError(
-          `Admin created, but automatic sign-in failed (${signInError.message}). Go to Sign in with the same email and password.`,
-        );
-        setBusy(false);
-        return;
-      }
-      void navigate({ to: "/admin" });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(msg || "Could not create the admin account.");
-    } finally {
-      setBusy(false);
+    const result = await bootstrapAdminWithSupabase({
+      email: email.trim(),
+      password,
+      name: name.trim() || "Admin",
+    });
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
     }
+    enterAs({
+      portal: "admin",
+      actorId: result.account.id,
+      name: result.account.name,
+      role: "admin",
+    });
+    void navigate({ to: "/admin" });
   }
 
   if (needed === null) {
@@ -79,7 +64,7 @@ function Setup() {
         <div className="max-w-sm">
           <p className="text-body">An admin account may already exist.</p>
           <p className="mt-2 text-support text-muted">
-            Try signing in with <strong>gadnahery7@gmail.com</strong> and your password.
+            Sign in with <strong>gadnahery7@gmail.com</strong>.
           </p>
           <a
             href="/login"
@@ -107,12 +92,8 @@ function Setup() {
         </div>
         <h1 className="mt-6 text-center text-title font-normal">Create the admin account</h1>
         <p className="mt-1 text-center text-support text-muted">
-          One-time setup. After this, use the same email and password on Staff sign in.
+          Uses Supabase Auth. After this, sign in with the same email and password.
         </p>
-
-        {checkError && (
-          <p className="mt-4 rounded-2xl bg-brand-soft px-4 py-3 text-support text-brand">{checkError}</p>
-        )}
 
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
           <div>
