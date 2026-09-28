@@ -93,6 +93,7 @@ export function statusLabel(s: AppointmentStatus) {
 }
 
 export type DisplayPhase =
+  | "requested"
   | "payment_pending"
   | "confirmed"
   | "today"
@@ -108,6 +109,10 @@ export function displayPhase(a: Appointment, now = new Date()): DisplayPhase {
   if (a.status === "completed") return "completed";
   if (a.status === "no_show") return "cancelled";
   if (a.status === "expired") return "payment_pending";
+  // Waiting for salon to accept — never show as confirmed
+  if (a.status === "requested" || (a.needsProviderConfirm && !a.providerConfirmed)) {
+    return "requested";
+  }
   if (a.status === "payment_pending") return "payment_pending";
   if (a.status === "in_service") return "in_service";
   if (a.status === "checked_in") return "checked_in";
@@ -118,15 +123,20 @@ export function displayPhase(a: Appointment, now = new Date()): DisplayPhase {
 
 export function phaseCopy(phase: DisplayPhase, time?: string) {
   switch (phase) {
+    case "requested":
+      return {
+        title: "Waiting for salon",
+        body: "Your request was sent. The salon must accept this time before you pay. We'll notify you when it's accepted.",
+      };
     case "payment_pending":
       return {
-        title: "Payment pending",
-        body: "Complete your payment to confirm this appointment.",
+        title: "Accepted — pay to book",
+        body: "The salon accepted your time. Pay the deposit now to finish booking.",
       };
     case "confirmed":
       return {
-        title: "Confirmed",
-        body: "Your appointment is confirmed. We'll remind you before your visit.",
+        title: "Booked & paid",
+        body: "You're booked. We'll remind you before your visit.",
       };
     case "today":
       return {

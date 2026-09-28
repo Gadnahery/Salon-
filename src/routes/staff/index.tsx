@@ -51,6 +51,10 @@ function StaffToday() {
     .filter((x) => x.a)
     .slice(0, 4);
   const timeline = [...todays].sort((a, b) => a.time.localeCompare(b.time));
+  const pendingRequests = appointments
+    .filter((a) => a.status === "requested" || (a.needsProviderConfirm && !a.providerConfirmed))
+    .filter((a) => a.status !== "cancelled")
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
   const shift = effectiveShift(session.actorId, appointments, staffStatus[session.actorId] ?? "available");
   const confirmAppt = confirm ? appointments.find((a) => a.id === confirm.id) : null;
 
@@ -91,6 +95,34 @@ function StaffToday() {
           </button>
         ))}
       </div>
+
+      {pendingRequests.length > 0 && (
+        <section className="mt-6 rounded-[24px] border border-ink bg-surface p-5">
+          <p className="text-section font-normal">Accept booking requests</p>
+          <p className="mt-1 text-support text-muted">
+            Customers are waiting. Accept so they can pay the deposit.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {pendingRequests.map((a) => (
+              <li key={a.id}>
+                <Link
+                  to="/staff/appointments/$id"
+                  params={{ id: a.id }}
+                  className="flex items-center justify-between rounded-2xl bg-bg px-4 py-3"
+                >
+                  <span>
+                    <span className="block text-body font-medium">{a.customerName}</span>
+                    <span className="block text-support text-muted">
+                      {a.date} · {a.time}
+                    </span>
+                  </span>
+                  <span className="text-support font-medium">Review</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-8">
         <p className="text-micro uppercase tracking-[0.16em] text-muted">Today</p>

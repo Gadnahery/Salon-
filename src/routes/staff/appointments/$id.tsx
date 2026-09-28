@@ -109,13 +109,15 @@ function StaffAppointment() {
           </div>
         </div>
 
-        {booking.needsProviderConfirm && !booking.providerConfirmed && booking.status !== "cancelled" && (
+        {(booking.status === "requested" || (booking.needsProviderConfirm && !booking.providerConfirmed)) && booking.status !== "cancelled" && (
           <section className="mt-6 rounded-[24px] border border-ink bg-surface p-5">
-            <p className="text-body font-medium">Confirm or decline this booking</p>
-            <p className="mt-1 text-support text-muted">Customer is waiting for provider confirmation.</p>
+            <p className="text-body font-medium">Accept this booking request?</p>
+            <p className="mt-1 text-support text-muted">
+              Customer is waiting. Accept to hold the time — they pay the deposit after you accept.
+            </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Button type="button" className="h-12 bg-ink text-white" onClick={() => confirmProvider(booking.id)}>
-                Confirm
+                Accept booking
               </Button>
               <Button type="button" variant="secondary" className="h-12" onClick={() => declineProvider(booking.id)}>
                 Decline

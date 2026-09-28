@@ -200,16 +200,28 @@ END:VCALENDAR`;
             </p>
           </div>
 
-          {phase === "payment_pending" && (
-            <div className="mt-6 rounded-[20px] border border-line bg-surface px-5 py-5">
-              <p className="text-section font-normal">Complete payment</p>
+          {phase === "requested" && (
+            <div className="mt-6 rounded-[20px] border border-line bg-brand-soft px-5 py-5">
+              <p className="text-section font-normal">Waiting for the salon to accept</p>
               <p className="mt-2 text-body text-muted">
-                Approve the USSD prompt for {formatTsh(appt.deposit || appt.total)} on{" "}
+                Staff will review this time. You only pay after they accept — not before.
+              </p>
+              <p className="mt-3 text-support text-muted">
+                Open this page again or allow notifications to know when you can pay.
+              </p>
+            </div>
+          )}
+
+          {phase === "payment_pending" && (
+            <div className="mt-6 rounded-[20px] border border-ink bg-surface px-5 py-5">
+              <p className="text-section font-normal">Salon accepted — pay to complete</p>
+              <p className="mt-2 text-body text-muted">
+                Your time is held. Approve the USSD for {formatTsh(appt.deposit || appt.total)} on{" "}
                 {profile.mpesaPhone || appt.customerPhone}.
               </p>
-              {payMessage && <p className="mt-3 text-support text-muted">{payMessage}</p>}
-              <Button className="mt-4 h-12 w-full" onClick={() => void retryPay()}>
-                Pay {formatTsh(appt.deposit || appt.total)}
+              {payMessage && <p className="mt-3 text-support text-brand">{payMessage}</p>}
+              <Button className="mt-4 h-12 w-full bg-ink text-white" onClick={() => void retryPay()}>
+                Pay deposit {formatTsh(appt.deposit || appt.total)}
               </Button>
             </div>
           )}
