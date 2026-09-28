@@ -11,7 +11,7 @@ export const Route = createFileRoute("/login")({ component: Login });
 function Login() {
   const navigate = useNavigate();
   const enterAs = useSalonStore((s) => s.enterAs);
-  const [email, setEmail] = useState("gadnahery7@gmail.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -34,7 +34,7 @@ function Login() {
     });
     setBusy(false);
     if (!account) {
-      setError("Signed in, but this account is not staff/admin. Run /setup first.");
+      setError("Signed in, but this account is not staff or admin.");
       return;
     }
     enterAs({
@@ -57,18 +57,23 @@ function Login() {
           <LogoWord />
         </div>
         <h1 className="mt-6 text-center text-title font-normal">Staff sign in</h1>
-        <p className="mt-1 text-center text-support text-muted">Supabase Auth — staff and admin only.</p>
+        <p className="mt-1 text-center text-support text-muted">Staff and admin only.</p>
 
-        <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+        <form className="mt-8 space-y-4" onSubmit={onSubmit} autoComplete="off">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              autoComplete="username"
+              name="staff-email"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
             />
           </div>
           <div>
@@ -76,10 +81,12 @@ function Login() {
             <Input
               id="password"
               type="password"
+              name="staff-password"
               autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
             />
           </div>
           {error && (
@@ -93,11 +100,6 @@ function Login() {
         </form>
 
         <p className="mt-6 text-center text-support text-muted">
-          First time?{" "}
-          <Link to="/setup" className="font-medium text-ink underline underline-offset-4">
-            Create admin
-          </Link>
-          {" · "}
           Customer?{" "}
           <Link to="/enter" className="font-medium text-ink underline underline-offset-4">
             Continue here
