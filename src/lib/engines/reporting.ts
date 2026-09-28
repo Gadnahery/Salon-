@@ -57,3 +57,50 @@ export function customerTrends(customers: CustomerRecord[], appointments: Appoin
     averageBookingValue: avgValue,
   };
 }
+
+
+export function peakHours(appointments: Appointment[]) {
+  const map: Record<string, number> = {};
+  for (const a of appointments) {
+    if (a.status === "cancelled" || a.status === "expired") continue;
+    const h = a.time?.slice(0, 2) || "00";
+    map[h] = (map[h] ?? 0) + 1;
+  }
+  return Object.entries(map)
+    .map(([hour, n]) => ({ hour: `${hour}:00`, n }))
+    .sort((a, b) => b.n - a.n);
+}
+
+export function peakDays(appointments: Appointment[]) {
+  const map: Record<string, number> = {};
+  for (const a of appointments) {
+    if (a.status === "cancelled" || a.status === "expired") continue;
+    map[a.date] = (map[a.date] ?? 0) + 1;
+  }
+  return Object.entries(map)
+    .map(([date, n]) => ({ date, n }))
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 14);
+}
+
+export function staffUtilization(
+  appointments: Appointment[],
+  payments: PaymentRecord[],
+  staffIds: string[],
+) {
+  return staffIds.map((id) => {
+    const mine = appointments.filter(
+      (a) => a.stylistId === id && a.status !== "cancelled" && a.status !== "expired",
+    );
+    const completed = mine.filter((a) => a.status === "completed");
+    const revenue = payments
+      .filter((p) => p.status === "paid" && completed.some((a) => a.id === p.bookingId))
+      .reduce((s, p) => s + p.amount, 0);
+    return {
+      staffId: id,
+      bookings: mine.length,
+      completed: completed.length,
+      revenue,
+    };
+  }).sort((a, b) => b.revenue - a.revenue);
+}

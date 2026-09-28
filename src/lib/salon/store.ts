@@ -48,6 +48,7 @@ import type {
   StaffRole,
   TeamMember,
   TimeOff,
+  WaitlistEntry,
 } from "./types";
 
 const emptyDraft: BookingDraft = {
@@ -126,6 +127,8 @@ type SalonState = {
   settings: SalonSettings;
   templates: NoticeTemplate[];
   galleryItems: GalleryItem[];
+  waitlist: WaitlistEntry[];
+  reviewPromptId: string | null;
   bookingCounter: number;
   draft: BookingDraft;
   toast: string | null;
@@ -178,6 +181,13 @@ type SalonState = {
   addGalleryItem: (item: GalleryItem) => void;
   updateGalleryItem: (id: string, patch: Partial<GalleryItem>) => void;
   removeGalleryItem: (id: string) => void;
+  joinWaitlist: (entry: Omit<WaitlistEntry, "id" | "createdAt" | "status">) => WaitlistEntry;
+  cancelWaitlist: (id: string) => void;
+  confirmProvider: (id: string) => void;
+  declineProvider: (id: string) => void;
+  setAppointmentPhotos: (id: string, patch: { beforePhoto?: string; afterPhoto?: string; photoConsent?: boolean }) => void;
+  clearReviewPrompt: () => void;
+  requestReview: (id: string) => void;
   setGalleryVisible: (id: string, visible: boolean) => void;
   reorderQueue: (appointmentId: string, dir: -1 | 1) => void;
   addTimeOff: (staffId: string, date: string, reason: string) => void;
@@ -238,6 +248,8 @@ export const useSalonStore = create<SalonState>()(
       settings: defaultSettings,
       templates: defaultTemplates,
       galleryItems: defaultGallery(),
+      waitlist: [],
+      reviewPromptId: null,
       bookingCounter: 48310,
       draft: emptyDraft,
       toast: null,
@@ -307,6 +319,13 @@ export const useSalonStore = create<SalonState>()(
           : draft.stylistId;
         const { total, deposit, remaining } = quote(draft.serviceId, { offers: get().offers });
         const id = nextBookingId(bookingCounter);
+        const session = get().session;
+        const customerId =
+          session.portal === "customer" && session.actorId !== "guest"
+            ? session.actorId
+            : profile.phone
+              ? `cust-${profile.phone.replace(/\D/g, "").slice(-9)}`
+              : CUSTOMER_ID;
         const appt: Appointment = {
           id,
           serviceId: draft.serviceId,
@@ -325,15 +344,17 @@ export const useSalonStore = create<SalonState>()(
           paymentMethod: draft.paymentMethod,
           status: "payment_pending",
           createdAt: new Date().toISOString(),
-          customerId: CUSTOMER_ID,
-          customerName: profile.name,
+          customerId,
+          customerName: profile.name || session.name,
           customerPhone: profile.phone,
           source: "appointment",
+          needsProviderConfirm: true,
+          providerConfirmed: false,
         };
         const payment = makePayment({
           bookingId: id,
-          customerId: CUSTOMER_ID,
-          customerName: profile.name,
+          customerId,
+          customerName: profile.name || session.name,
           amount: deposit,
           method: draft.paymentMethod,
           phone: profile.mpesaPhone || profile.phone,
@@ -345,6 +366,27 @@ export const useSalonStore = create<SalonState>()(
           appointments: [appt, ...get().appointments],
           payments: [payment, ...get().payments],
           bookingCounter: bookingCounter + 1,
+          notices: [
+            {
+              id: `n-nb-${Date.now()}`,
+              title: "New booking request",
+              body: `${appt.customerName} booked ${service.name} on ${appt.date} at ${appt.time}.`,
+              time: new Date().toISOString(),
+              read: false,
+              appointmentId: id,
+              audience: "staff" as const,
+            },
+            {
+              id: `n-nbc-${Date.now()}`,
+              title: "Booking held",
+              body: "Complete payment to reserve your time.",
+              time: new Date().toISOString(),
+              read: false,
+              appointmentId: id,
+              audience: "customer" as const,
+            },
+            ...get().notices,
+          ],
         });
         persistOps({ appointment: appt, payment });
         return appt;
@@ -620,6 +662,7 @@ export const useSalonStore = create<SalonState>()(
             ...get().notices,
           ],
           audit: [makeAudit(actorName(get().session), "completed service", id, current.status, "completed"), ...get().audit],
+          reviewPromptId: id,
           toast: "Service completed",
         });
         persistOps({ appointment: next, queue: get().queue, audit: get().audit[0] });
@@ -951,6 +994,64 @@ export const useSalonStore = create<SalonState>()(
       removeGalleryItem: (id) => {
         set({ galleryItems: get().galleryItems.filter((g) => g.id !== id) });
       },
+      joinWaitlist: (entry) => {
+        const row = {
+          ...entry,
+          id: `wl-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          status: "waiting" as const,
+        };
+        set({
+          waitlist: [row, ...get().waitlist],
+          notices: [
+            {
+              id: `n-wl-${Date.now()}`,
+              title: "You're on the waitlist",
+              body: "We'll notify you when a slot opens.",
+              time: new Date().toISOString(),
+              read: false,
+              audience: "customer" as const,
+            },
+            ...get().notices,
+          ],
+        });
+        return row;
+      },
+      cancelWaitlist: (id) =>
+        set({
+          waitlist: get().waitlist.map((w) =>
+            w.id === id ? { ...w, status: "cancelled" as const } : w,
+          ),
+        }),
+      confirmProvider: (id) => {
+        set({
+          appointments: get().appointments.map((a) =>
+            a.id === id ? { ...a, providerConfirmed: true, needsProviderConfirm: false } : a,
+          ),
+          notices: [
+            {
+              id: `n-pc-${Date.now()}`,
+              title: "Booking confirmed by provider",
+              body: "Your stylist confirmed the appointment.",
+              time: new Date().toISOString(),
+              read: false,
+              appointmentId: id,
+              audience: "customer" as const,
+            },
+            ...get().notices,
+          ],
+        });
+      },
+      declineProvider: (id) => {
+        get().cancelAppointment(id);
+      },
+      setAppointmentPhotos: (id, patch) => {
+        set({
+          appointments: get().appointments.map((a) => (a.id === id ? { ...a, ...patch } : a)),
+        });
+      },
+      clearReviewPrompt: () => set({ reviewPromptId: null }),
+      requestReview: (id) => set({ reviewPromptId: id }),
       setGalleryVisible: (id, visible) =>
         set({
           galleryItems: get().galleryItems.map((g) => (g.id === id ? { ...g, visible } : g)),
@@ -996,7 +1097,7 @@ export const useSalonStore = create<SalonState>()(
         }),
     }),
     {
-      name: "uls-salon-ops-v5",
+      name: "uls-salon-ops-v6",
       skipHydration: true,
       partialize: (s) => ({
         seeded: s.seeded,
@@ -1018,6 +1119,8 @@ export const useSalonStore = create<SalonState>()(
         settings: s.settings,
         templates: s.templates,
         galleryItems: s.galleryItems,
+        waitlist: s.waitlist,
+        reviewPromptId: s.reviewPromptId,
         bookingCounter: s.bookingCounter,
         draft: s.draft,
       }),

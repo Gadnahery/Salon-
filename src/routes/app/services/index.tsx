@@ -25,12 +25,21 @@ function ServicesPage() {
   const { category: initial } = Route.useSearch();
   const [category, setCategory] = useState<Category | "all">(initial ?? "all");
   const [q, setQ] = useState("");
+  const [priceMax, setPriceMax] = useState<number | "">("");
+  const team = useSalonStore((s) => s.team);
+  const [stylistId, setStylistId] = useState<string>("any");
   const catalog = useSalonStore((s) => s.catalog);
   const services = catalog.length ? catalog : seedServices;
   const searching = q.trim().length > 0;
   const filtered = services.filter((s) => {
+    if (s.available === false) return false;
     if (category !== "all" && s.category !== category) return false;
     if (q && !`${s.name} ${s.description}`.toLowerCase().includes(q.toLowerCase())) return false;
+    if (priceMax !== "" && s.priceMin > Number(priceMax)) return false;
+    if (stylistId !== "any") {
+      const member = team.find((m) => m.id === stylistId);
+      if (member?.serviceIds?.length && !member.serviceIds.includes(s.id)) return false;
+    }
     return true;
   });
   const featured = filtered.filter((s) => s.popular);
@@ -79,6 +88,34 @@ function ServicesPage() {
           ))}
         </div>
       )}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <select
+          value={priceMax === "" ? "" : String(priceMax)}
+          onChange={(e) => setPriceMax(e.target.value ? Number(e.target.value) : "")}
+          className="h-10 rounded-full border border-line bg-surface px-3 text-support"
+        >
+          <option value="">Any price</option>
+          <option value="15000">Under 15,000</option>
+          <option value="30000">Under 30,000</option>
+          <option value="50000">Under 50,000</option>
+          <option value="100000">Under 100,000</option>
+        </select>
+        <select
+          value={stylistId}
+          onChange={(e) => setStylistId(e.target.value)}
+          className="h-10 rounded-full border border-line bg-surface px-3 text-support"
+        >
+          <option value="any">Any provider</option>
+          {team
+            .filter((m) => m.role === "stylist" && m.active !== false)
+            .map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+        </select>
+      </div>
 
       {searching ? (
         <div className="mt-8">

@@ -27,6 +27,9 @@ function StaffAppointment() {
   const applyDiscount = useSalonStore((s) => s.applyDiscount);
   const settings = useSalonStore((s) => s.settings);
   const markNoShow = useSalonStore((s) => s.markNoShow);
+  const confirmProvider = useSalonStore((s) => s.confirmProvider);
+  const declineProvider = useSalonStore((s) => s.declineProvider);
+  const setAppointmentPhotos = useSalonStore((s) => s.setAppointmentPhotos);
   const navigate = useNavigate();
   const [confirm, setConfirm] = useState<"start" | "complete" | "cancel" | "no_show" | null>(null);
   const [paying, setPaying] = useState<"idle" | "waiting" | "confirming">("idle");
@@ -93,6 +96,21 @@ function StaffAppointment() {
             </div>
           </div>
         </div>
+
+        {booking.needsProviderConfirm && !booking.providerConfirmed && booking.status !== "cancelled" && (
+          <section className="mt-6 rounded-[24px] border border-ink bg-surface p-5">
+            <p className="text-body font-medium">Confirm or decline this booking</p>
+            <p className="mt-1 text-support text-muted">Customer is waiting for provider confirmation.</p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Button type="button" className="h-12 bg-ink text-white" onClick={() => confirmProvider(booking.id)}>
+                Confirm
+              </Button>
+              <Button type="button" variant="secondary" className="h-12" onClick={() => declineProvider(booking.id)}>
+                Decline
+              </Button>
+            </div>
+          </section>
+        )}
 
         <section className="mt-8 rounded-[24px] bg-surface p-5">
           <p className="text-micro uppercase tracking-[0.16em] text-muted">Customer</p>
@@ -272,7 +290,60 @@ function StaffAppointment() {
         }}
       />
       {paying !== "idle" && (
-        <PayOverlay phase={paying} phone={appt.customerPhone} amount={appt.remaining} />
+        <section className="mx-5 mt-4 rounded-[24px] bg-surface p-5">
+        <p className="text-micro uppercase tracking-[0.16em] text-muted">Before / after photos</p>
+        <label className="mt-3 flex items-start gap-3 text-support">
+          <input
+            type="checkbox"
+            checked={!!booking.photoConsent}
+            onChange={(e) => setAppointmentPhotos(booking.id, { photoConsent: e.target.checked })}
+            className="mt-1"
+          />
+          <span>Customer consents to store service photos for quality tracking.</span>
+        </label>
+        {booking.photoConsent && (
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-support text-muted">Before</p>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-2 block w-full text-support"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  const { pickImageAsSrc } = await import("@/lib/salon/image-upload");
+                  const src = await pickImageAsSrc(f);
+                  setAppointmentPhotos(booking.id, { beforePhoto: src });
+                }}
+              />
+              {booking.beforePhoto && (
+                <Photo src={booking.beforePhoto} alt="Before" className="mt-2 aspect-square w-full rounded-2xl" />
+              )}
+            </div>
+            <div>
+              <p className="text-support text-muted">After</p>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-2 block w-full text-support"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  const { pickImageAsSrc } = await import("@/lib/salon/image-upload");
+                  const src = await pickImageAsSrc(f);
+                  setAppointmentPhotos(booking.id, { afterPhoto: src });
+                }}
+              />
+              {booking.afterPhoto && (
+                <Photo src={booking.afterPhoto} alt="After" className="mt-2 aspect-square w-full rounded-2xl" />
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <PayOverlay phase={paying} phone={appt.customerPhone} amount={appt.remaining} />
       )}
     </main>
   );

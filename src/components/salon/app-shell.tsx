@@ -30,6 +30,9 @@ export function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const toast = useSalonStore((s) => s.toast);
   const setToast = useSalonStore((s) => s.setToast);
+  const reviewPromptId = useSalonStore((s) => s.reviewPromptId);
+  const clearReviewPrompt = useSalonStore((s) => s.clearReviewPrompt);
+  const submitReview = useSalonStore((s) => s.submitReview);
   const hideNav =
     pathname.includes("/book") ||
     /\/services\/[^/]+/.test(pathname) ||
@@ -91,7 +94,34 @@ export function AppShell() {
       </aside>
 
       <div className={cn("lg:pl-60", hideNav ? "pb-0" : "pb-24 lg:pb-0")}>
-        <Outlet />
+        {reviewPromptId && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/40 p-4 sm:items-center">
+          <div className="w-full max-w-sm rounded-[28px] bg-bg p-6 shadow-float">
+            <p className="text-section font-normal">How was your visit?</p>
+            <p className="mt-2 text-support text-muted">Leave a quick review for your completed service.</p>
+            <div className="mt-5 flex gap-2">
+              {[5, 4, 3, 2, 1].map((stars) => (
+                <Button
+                  key={stars}
+                  type="button"
+                  variant="secondary"
+                  className="h-11 flex-1"
+                  onClick={() => {
+                    submitReview({ appointmentId: reviewPromptId, rating: stars, quote: "" });
+                    clearReviewPrompt();
+                  }}
+                >
+                  {stars}★
+                </Button>
+              ))}
+            </div>
+            <Button type="button" variant="secondary" className="mt-4 h-11 w-full" onClick={() => clearReviewPrompt()}>
+              Not now
+            </Button>
+          </div>
+        </div>
+      )}
+      <Outlet />
       </div>
 
       {!hideNav && (

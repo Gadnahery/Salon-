@@ -57,6 +57,9 @@ function BookPage() {
   const profile = useSalonStore((s) => s.profile);
   const setProfile = useSalonStore((s) => s.setProfile);
   const appointments = useSalonStore((s) => s.appointments);
+  const joinWaitlist = useSalonStore((s) => s.joinWaitlist);
+  const session = useSalonStore((s) => s.session);
+  const [waitListed, setWaitListed] = useState(false);
   const timeOff = useSalonStore((s) => s.timeOff);
   const catalog = useSalonStore((s) => s.catalog);
   const settings = useSalonStore((s) => s.settings);
@@ -337,6 +340,25 @@ function BookPage() {
                     Try any available stylist
                   </Button>
                 )}
+                <Button
+                  variant="secondary"
+                  className="mt-3 h-12"
+                  disabled={waitListed || !draft.serviceId || !draft.date}
+                  onClick={() => {
+                    if (!draft.serviceId || !draft.date) return;
+                    joinWaitlist({
+                      serviceId: draft.serviceId,
+                      stylistId: draft.stylistId,
+                      preferredDate: draft.date,
+                      customerId: session.actorId,
+                      customerName: profile.name || session.name,
+                      customerPhone: profile.phone,
+                    });
+                    setWaitListed(true);
+                  }}
+                >
+                  {waitListed ? "You're on the waitlist" : "Join waitlist for this day"}
+                </Button>
               </div>
             ) : (
               TIME_GROUPS.map((group) => (

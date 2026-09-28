@@ -64,6 +64,19 @@ export type AppointmentStatus =
 
 export type BookingSource = "appointment" | "walk_in";
 
+export type WaitlistEntry = {
+  id: string;
+  serviceId: string;
+  stylistId: string;
+  preferredDate: string;
+  preferredTime?: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  createdAt: string;
+  status: "waiting" | "offered" | "booked" | "cancelled";
+};
+
 export type Appointment = {
   id: string;
   serviceId: string;
@@ -92,6 +105,12 @@ export type Appointment = {
   paymentOrderId?: string;
   discountPercent?: number;
   discountReason?: string;
+  /** Provider must confirm before service day */
+  needsProviderConfirm?: boolean;
+  providerConfirmed?: boolean;
+  beforePhoto?: string;
+  afterPhoto?: string;
+  photoConsent?: boolean;
 };
 
 export type NoticeAudience = "customer" | "staff" | "admin";
