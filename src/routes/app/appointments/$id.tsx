@@ -582,6 +582,8 @@ function timelineFor(phase: ReturnType<typeof displayPhase>) {
   const idx =
     phase === "cancelled"
       ? -1
+      : phase === "requested"
+        ? 0
       : phase === "payment_pending"
         ? 0
         : phase === "confirmed"
@@ -598,6 +600,7 @@ function timelineFor(phase: ReturnType<typeof displayPhase>) {
 }
 
 function primaryAction(phase: ReturnType<typeof displayPhase>) {
+  if (phase === "requested") return null;
   if (phase === "payment_pending") return "pay" as const;
   if (phase === "confirmed") return "calendar" as const;
   if (phase === "today" || phase === "checked_in") return "directions" as const;

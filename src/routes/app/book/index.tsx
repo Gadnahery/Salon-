@@ -629,9 +629,9 @@ function BookPage() {
               </button>
             </div>
 
-            <p className="mt-8 text-body font-medium">How you pay</p>
+            <p className="mt-8 text-body font-medium">Next steps</p>
             <p className="mt-2 text-support text-muted">
-              First the salon confirms your time. After confirmation you pay the deposit by mobile money on your phone.
+              1) Send this request. 2) Wait for the salon to accept. 3) Then pay the deposit on your phone. You do not pay until they accept.
             </p>
             {payError && (
               <div className="mt-5 rounded-2xl border border-brand/30 bg-brand-soft p-4">
