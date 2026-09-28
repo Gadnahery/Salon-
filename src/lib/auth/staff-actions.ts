@@ -43,10 +43,15 @@ export const getMyStaffAccountFn = createServerFn({ method: "GET" })
 
 /** True when no staff accounts exist yet — the one-time `/setup` page uses this. */
 export const staffSetupNeededFn = createServerFn({ method: "GET" }).handler(async (): Promise<boolean> => {
-  const { getSql } = await import("@/lib/db");
-  const sql = await getSql();
-  const rows = await sql<{ count: string }>`select count(*)::text as count from salon_staff_accounts`;
-  return (rows[0]?.count ?? "0") === "0";
+  try {
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    const rows = await sql<{ count: string }>`select count(*)::text as count from salon_staff_accounts`;
+    return (rows[0]?.count ?? "0") === "0";
+  } catch {
+    // Missing table / DB not ready → still allow setup form (do not treat as complete).
+    return true;
+  }
 });
 
 /**
