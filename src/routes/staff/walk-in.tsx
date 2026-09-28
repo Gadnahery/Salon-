@@ -39,6 +39,9 @@ function WalkInPage() {
   const [paying, setPaying] = useState<"idle" | "sending" | "waiting" | "confirming">("idle");
   const [payMessage, setPayMessage] = useState("");
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const [discount, setDiscount] = useState(0);
+  const applyDiscount = useSalonStore((s) => s.applyDiscount);
+  const settings = useSalonStore((s) => s.settings);
   const payAbortRef = useRef<AbortController | null>(null);
 
   const digits = phone.replace(/\D/g, "");
@@ -73,6 +76,9 @@ function WalkInPage() {
       method,
     });
     if (!appt) return;
+    if (discount > 0 && settings.cashierCanDiscount) {
+      applyDiscount(appt.id, discount, "Walk-in discount");
+    }
     if (amount > 0) {
       setPaying("sending");
       payAbortRef.current?.abort();

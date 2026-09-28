@@ -1,3 +1,4 @@
+import { ReminderWatcher } from "@/components/salon/reminder-watcher";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Home, Calendar, Plus, User, Bell } from "lucide-react";
@@ -147,6 +148,7 @@ export function AppShell() {
       )}
 
       <BookSheet open={bookOpen} onOpenChange={setBookOpen} />
+      <ReminderWatcher />
       <NotifyPrompt />
       <InstallPrompt portal="customer" />
 

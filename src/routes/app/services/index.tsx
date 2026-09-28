@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { services as seedServices } from "@/lib/salon/data";
 import { useSalonStore } from "@/lib/salon/store";
-import { categoryLabel, categoryOrder, formatDuration, formatPriceRange } from "@/lib/salon/format";
+import { categoryLabel, categoryOrder, formatDuration, formatPriceRange, dateHasAvailability } from "@/lib/salon/format";
+import { averageRating } from "@/lib/engines/review";
+import { todayKey } from "@/lib/engines/schedule";
 import type { Category } from "@/lib/salon/types";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +28,8 @@ function ServicesPage() {
   const [category, setCategory] = useState<Category | "all">(initial ?? "all");
   const [q, setQ] = useState("");
   const [priceMax, setPriceMax] = useState<number | "">("");
+  const [availableToday, setAvailableToday] = useState(false);
+  const reviews = useSalonStore((s) => s.reviews);
   const team = useSalonStore((s) => s.team);
   const [stylistId, setStylistId] = useState<string>("any");
   const catalog = useSalonStore((s) => s.catalog);
@@ -39,6 +43,15 @@ function ServicesPage() {
     if (stylistId !== "any") {
       const member = team.find((m) => m.id === stylistId);
       if (member?.serviceIds?.length && !member.serviceIds.includes(s.id)) return false;
+    }
+    if (availableToday) {
+      const providers = team.filter(
+        (m) => m.active !== false && (m.serviceIds?.includes(s.id) || !m.serviceIds?.length),
+      );
+      if (!providers.length) return false;
+      // At least one provider has availability hash for today
+      const ok = providers.some((m) => dateHasAvailability(todayKey(), m.id));
+      if (!ok) return false;
     }
     return true;
   });
@@ -101,6 +114,16 @@ function ServicesPage() {
           <option value="50000">Under 50,000</option>
           <option value="100000">Under 100,000</option>
         </select>
+        <button
+          type="button"
+          onClick={() => setAvailableToday((v) => !v)}
+          className={cn(
+            "h-10 rounded-full border px-3 text-support",
+            availableToday ? "border-ink bg-ink text-white" : "border-line bg-surface text-ink",
+          )}
+        >
+          Available today
+        </button>
         <select
           value={stylistId}
           onChange={(e) => setStylistId(e.target.value)}

@@ -966,14 +966,28 @@ export const useSalonStore = create<SalonState>()(
           stylistId: appt.stylistId,
           rating: input.rating,
           quote: input.quote,
-          published: false,
+          published: true,
           createdAt: new Date().toISOString(),
         };
         set({
           reviews: [review, ...get().reviews],
+          reviewPromptId: null,
           notices: [makeNotice("New review", `${appt.customerName} left a review.`, "admin", appt.id), ...get().notices],
           toast: "Thank you for the review",
         });
+        void import("@/lib/notifications/push-actions")
+          .then(({ sendStaffPushFn }) =>
+            sendStaffPushFn({
+              data: {
+                title: "New customer review",
+                body: `${appt.customerName} · ${"★".repeat(input.rating)}`,
+                url: "/admin/reviews",
+                tag: `rev-${review.id}`,
+                audience: "both",
+              },
+            }),
+          )
+          .catch(() => {});
         syncReview(review);
         return true;
       },

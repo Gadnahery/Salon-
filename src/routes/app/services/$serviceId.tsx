@@ -15,6 +15,7 @@ export const Route = createFileRoute("/app/services/$serviceId")({
 });
 
 function ServiceDetail() {
+  const allReviews = useSalonStore((s) => s.reviews);
   const { serviceId } = Route.useParams();
   const service = getService(serviceId);
   const saved = useSalonStore((s) => s.savedServiceIds.includes(serviceId));
@@ -33,6 +34,8 @@ function ServiceDetail() {
       </main>
     );
   }
+
+  const liveReviews = allReviews.filter((r) => r.published && r.serviceId === service.id);
 
   const people = stylistsFor(service.category);
   const previewTimes = TIME_SLOTS.slice(0, 3);
@@ -151,9 +154,26 @@ function ServiceDetail() {
         </Link>
 
         <h2 className="mt-8 text-body font-medium">Client reviews</h2>
-        <p className="mt-2 text-body">★ {service.rating.toFixed(1)} · {service.reviewCount} reviews</p>
-        <blockquote className="mt-3 text-body text-muted">“{service.featuredReview.quote}”</blockquote>
-        <p className="mt-2 text-support text-muted">— {service.featuredReview.name}</p>
+        <p className="mt-2 text-body">
+          ★ {(liveReviews.length
+            ? liveReviews.reduce((s, r) => s + r.rating, 0) / liveReviews.length
+            : service.rating
+          ).toFixed(1)}{" "}
+          · {liveReviews.length || service.reviewCount} reviews
+        </p>
+        {liveReviews.slice(0, 5).map((r) => (
+          <div key={r.id} className="mt-3 rounded-2xl border border-line bg-surface px-4 py-3">
+            <p className="text-support">{"★".repeat(r.rating)}</p>
+            <p className="mt-1 text-body">{r.quote}</p>
+            <p className="mt-1 text-support text-muted">— {r.customerName}</p>
+          </div>
+        ))}
+        {liveReviews.length === 0 && (
+          <>
+            <blockquote className="mt-3 text-body text-muted">“{service.featuredReview.quote}”</blockquote>
+            <p className="mt-2 text-support text-muted">— {service.featuredReview.name}</p>
+          </>
+        )}
 
         <h2 className="mt-8 text-body font-medium">Recent work</h2>
         <div className="mt-3 flex gap-3 overflow-x-auto hide-scroll">

@@ -1,3 +1,4 @@
+import { ReminderWatcher } from "@/components/salon/reminder-watcher";
 import { NotifyPrompt } from "@/components/salon/notify-prompt";
 import { InstallPrompt } from "@/components/salon/install-prompt";
 import { StaffAlertWatcher } from "@/components/staff/staff-alert-watcher";
@@ -76,7 +77,8 @@ export function StaffShell() {
       </aside>
 
       <div className={cn("lg:pl-56", hideNav ? "pb-0" : "pb-24 lg:pb-0")}>
-        <StaffAlertWatcher />
+        <ReminderWatcher />
+      <StaffAlertWatcher />
         <NotifyPrompt />
         <InstallPrompt portal="staff" />
         <Outlet />

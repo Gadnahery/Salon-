@@ -51,6 +51,7 @@ function StaffToday() {
     .filter((x) => x.a)
     .slice(0, 4);
   const timeline = [...todays].sort((a, b) => a.time.localeCompare(b.time));
+  const waitlist = useSalonStore((s) => s.waitlist).filter((w) => w.status === "waiting");
   const pendingRequests = appointments
     .filter((a) => a.status === "requested" || (a.needsProviderConfirm && !a.providerConfirmed))
     .filter((a) => a.status !== "cancelled")
@@ -240,6 +241,24 @@ function StaffToday() {
       <section className="mt-10">
         <p className="text-micro uppercase tracking-[0.16em] text-muted">Today’s appointments</p>
         <ol className="mt-4 space-y-0">
+          
+      {waitlist.length > 0 && (
+        <section className="mt-6 rounded-[24px] border border-line bg-surface p-5">
+          <p className="text-section font-normal">Waitlist</p>
+          <p className="mt-1 text-support text-muted">Customers waiting for an open slot.</p>
+          <ul className="mt-4 space-y-2">
+            {waitlist.map((w) => (
+              <li key={w.id} className="rounded-2xl bg-bg px-4 py-3 text-body">
+                <span className="font-medium">{w.customerName}</span>
+                <span className="block text-support text-muted">
+                  {w.date} · {w.serviceId}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
           {timeline.map((a) => (
             <li key={a.id} className="grid grid-cols-[4.5rem_1fr] gap-3">
               <p className="pt-1 text-support tabular-nums text-muted">{formatClock(a.time)}</p>

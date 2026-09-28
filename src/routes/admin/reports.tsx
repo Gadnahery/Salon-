@@ -20,6 +20,7 @@ function Reports() {
   const payments = useSalonStore((s) => s.payments);
   const customers = useSalonStore((s) => s.customers);
   const team = useSalonStore((s) => s.team);
+  const reviews = useSalonStore((s) => s.reviews);
 
   const counts = bookingCounts(appointments);
   const todayKey = new Date().toISOString().slice(0, 10);
@@ -43,6 +44,11 @@ function Reports() {
     })
     .reduce((s, p) => s + p.amount, 0);
   const onlineRev = Math.max(0, totalRev - walkInRev);
+  const ratingByStaff = (id: string) => {
+    const list = reviews.filter((r) => r.stylistId === id && r.published);
+    if (!list.length) return null;
+    return Math.round((list.reduce((s, r) => s + r.rating, 0) / list.length) * 10) / 10;
+  };
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 lg:px-8">
@@ -130,6 +136,7 @@ function Reports() {
               <span className="text-body">{getStylist(r.staffId)?.name ?? r.staffId}</span>
               <span className="text-support text-muted">
                 {r.completed}/{r.bookings} done · {formatTsh(r.revenue)}
+                {ratingByStaff(r.staffId) != null ? ` · ★ ${ratingByStaff(r.staffId)}` : ""}
               </span>
             </li>
           ))}
