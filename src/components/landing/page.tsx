@@ -47,7 +47,7 @@ export function LandingPage() {
   const featured = services.filter((s) => s.popular);
 
   return (
-    <div className="bg-bg text-ink">
+    <div className="min-h-dvh bg-bg text-ink">
       <ThemePortal portal="public" />
       <LandingSmoothScroll />
       <header

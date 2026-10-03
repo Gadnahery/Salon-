@@ -18,7 +18,7 @@ export const Route = createRootRoute({
         content:
           "Warembo Village — More than Beauty... It's a lifestyle. Book Hair Clinic, Hair Salon, Makeup Studio and Nails Spa in Dar es Salaam.",
       },
-      { name: "theme-color", content: "#F3EFE6" },
+      { name: "theme-color", content: "#F7F6F3" },
       {
         name: "keywords",
         content:

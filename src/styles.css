@@ -25,27 +25,27 @@
 }
 
 :root[data-theme="ivory"] {
-  /* Warm cream — not pure white */
-  --bg: #f3efe6;
-  --surface: #faf6ee;
-  --surface-2: #ebe4d6;
-  --ink: #1c1917;
-  --muted: #78716c;
-  --line: #e0d7c8;
+  /* Original warm taupe paper — same family as mysalon-taupe */
+  --bg: #f7f6f3;
+  --surface: #fffcf8;
+  --surface-2: #efece6;
+  --ink: #1c1b19;
+  --muted: #6f6b64;
+  --line: #e6e3dc;
   --silver: #8e9298;
   --silver-hi: #f2f4f7;
   --silver-lo: #5f636a;
-  --brand: #1c1917;
-  --brand-ink: #faf6ee;
-  --brand-soft: #ebe4d6;
-  --accent-soft: #ebe4d6;
+  --brand: #1c1b19;
+  --brand-ink: #f7f6f3;
+  --brand-soft: #f0ebe3;
+  --accent-soft: #f0ebe3;
   --success: #2f7a5e;
   --warning: #a97a2c;
   --danger: #b4443a;
-  --glass-nav: rgba(243, 239, 230, 0.9);
-  --glass-chip: rgba(250, 246, 238, 0.92);
-  --glass-bar: rgba(243, 239, 230, 0.92);
-  --shadow-rgb: 28, 25, 23;
+  --glass-nav: rgba(247, 246, 243, 0.92);
+  --glass-chip: rgba(255, 252, 248, 0.94);
+  --glass-bar: rgba(247, 246, 243, 0.94);
+  --shadow-rgb: 28, 27, 25;
 }
 
 :root {
