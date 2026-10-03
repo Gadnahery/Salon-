@@ -104,6 +104,17 @@ export function isMainModule(moduleUrl) {
   }
 }
 
+function resolveCommand(command) {
+  // Prefer local node_modules/.bin so Vercel/CI never miss vite etc.
+  const local = join(projectRoot(), "node_modules", ".bin", command);
+  try {
+    realpathSync(local);
+    return local;
+  } catch {
+    return command;
+  }
+}
+
 function main(argv) {
   const [command, ...args] = argv;
   if (!command) {
@@ -111,7 +122,8 @@ function main(argv) {
     process.exit(2);
   }
   const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
-  const child = spawn(command, args, { stdio: "inherit", env });
+  const resolved = resolveCommand(command);
+  const child = spawn(resolved, args, { stdio: "inherit", env });
   // The dev server is long-running and is stopped by signalling this wrapper.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
     process.on(signal, () => child.kill(signal));
