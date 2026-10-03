@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { LogoWord } from "@/components/salon/logo";
 import { Photo } from "@/components/salon/photo";
 import { Stars } from "@/components/salon/stars";
-import { SALON, reviews, services } from "@/lib/salon/data";
+import { SALON, reviews, services } from "@/lib/salon/data"
+import { categoryLabel, CATEGORY_ORDER } from "@/lib/salon/category-labels";;
 import { formatDuration, formatPriceRange } from "@/lib/salon/format";
 import { cn } from "@/lib/utils";
 
@@ -146,21 +147,25 @@ export function LandingPage() {
             className="animate-fade-up text-micro uppercase tracking-[0.22em] text-surface/80"
             style={{ animationDelay: "40ms" }}
           >
-            Warembo Village
+            Beauty · Care · Confidence
           </p>
           <h1
             className="animate-fade-up mt-4 max-w-xl font-display text-hero font-normal text-surface"
             style={{ animationDelay: "120ms" }}
           >
-            Your beauty.
-            <br />
-            Your time.
+            More than Beauty.
           </h1>
+          <p
+            className="animate-fade-up mt-3 font-script text-2xl text-surface/90 md:text-3xl"
+            style={{ animationDelay: "160ms" }}
+          >
+            It&apos;s a lifestyle.
+          </p>
           <p
             className="animate-fade-up mt-5 max-w-md text-body text-surface/80"
             style={{ animationDelay: "200ms" }}
           >
-            Professional beauty services, experienced stylists, and effortless booking — all in one place.
+            Hair Clinic, Hair Salon, Makeup Studio &amp; Nails Spa in Madale, Mivumoni — book in a few taps.
           </p>
           <div
             className="animate-fade-up mt-8 flex flex-wrap items-center gap-3"
@@ -183,16 +188,16 @@ export function LandingPage() {
             style={{ animationDelay: "360ms" }}
           >
             <Stars value={5} light />
-            <span className="text-support text-surface/80">4.9 · Loved by our clients · Dar es Salaam</span>
+            <span className="text-support text-surface/80">4.9 · Madale, Mivumoni · Dar es Salaam</span>
           </div>
         </div>
       </section>
 
       <section id="services" className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
-        <p className="text-micro uppercase tracking-[0.18em] text-muted">Our services</p>
+        <p className="text-micro uppercase tracking-[0.18em] text-muted">Four houses of beauty</p>
         <h2 className="mt-3 font-display text-title font-normal">Find your next look.</h2>
         <p className="mt-3 max-w-lg text-body text-muted">
-          From everyday care to your next special occasion, choose a service that fits you.
+          Hair Clinic, Hair Salon, Makeup Studio and Nails Spa — choose a service that fits you.
         </p>
         <div className="mt-8 flex gap-2 overflow-x-auto hide-scroll">
           {(["all", "hair", "nails", "makeup", "treatments"] as const).map((c) => (
@@ -205,7 +210,7 @@ export function LandingPage() {
                 category === c ? "bg-ink text-white" : "border border-line bg-transparent text-ink",
               )}
             >
-              {c === "all" ? "All" : c}
+              {c === "all" ? "All" : categoryLabel(c)}
             </button>
           ))}
         </div>
@@ -309,7 +314,7 @@ export function LandingPage() {
           </h2>
           <p className="mt-6 max-w-md text-body text-muted">
             Warembo Village is a beauty destination in Madale, Mivumoni. We built it for unhurried work — hair, nails, makeup —
-            nails, makeup, and treatments — with the same care we would want for ourselves.
+            Nails Spa, Makeup Studio, and Hair Clinic — with the same care we would want for ourselves.
           </p>
           <Link to="/app" className="mt-8 inline-flex items-center gap-2 text-body">
             Meet the team

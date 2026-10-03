@@ -1,4 +1,5 @@
 import { ThemePortal } from "@/components/theme-portal";
+import { m } from "motion/react";
 import { ReminderWatcher } from "@/components/salon/reminder-watcher";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
@@ -129,8 +130,8 @@ export function AppShell() {
       </div>
 
       {!hideNav && (
-        <nav className="glass-nav fixed inset-x-0 bottom-0 z-40 border-t border-line lg:hidden">
-          <div className="relative mx-auto grid max-w-lg grid-cols-5 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
+        <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
+          <div className="pointer-events-auto relative mx-auto grid max-w-lg grid-cols-5 rounded-[28px] border border-line/80 bg-[var(--glass-nav)] px-1 py-1.5 shadow-nav backdrop-blur-xl">
             <TabLink tab={tabs[0]} pathname={pathname} />
             <TabLink tab={tabs[1]} pathname={pathname} />
             <div className="relative flex justify-center">
@@ -138,7 +139,7 @@ export function AppShell() {
                 type="button"
                 aria-label="Book appointment"
                 onClick={() => setBookOpen(true)}
-                className="absolute -top-7 flex size-14 items-center justify-center rounded-full bg-ink text-white shadow-float transition-transform duration-150 ease-out active:scale-[0.96]"
+                className="absolute -top-8 flex size-14 items-center justify-center rounded-full bg-ink text-[var(--brand-ink)] shadow-float transition-transform duration-150 ease-out active:scale-[0.96]"
               >
                 <Plus className="size-6" strokeWidth={1.75} />
               </button>
@@ -178,10 +179,17 @@ function TabLink({
     <Link
       to={tab.to}
       className={cn(
-        "flex flex-col items-center gap-1 py-1 text-micro tracking-[0.08em] uppercase",
+        "relative flex flex-col items-center gap-0.5 rounded-2xl py-2 text-micro tracking-[0.08em] uppercase transition-colors duration-150",
         active ? "text-ink" : "text-muted",
       )}
     >
+      {active && (
+        <m.span
+          layoutId="customer-tab-pill"
+          className="absolute inset-0 -z-10 rounded-2xl bg-surface-2/80"
+          transition={{ type: "spring", stiffness: 420, damping: 32 }}
+        />
+      )}
       <Icon className="size-5" strokeWidth={active ? 2 : 1.75} />
       <span className="normal-case tracking-normal text-support">{tab.label}</span>
     </Link>

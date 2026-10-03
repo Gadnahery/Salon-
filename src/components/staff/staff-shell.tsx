@@ -1,4 +1,5 @@
 import { ThemePortal } from "@/components/theme-portal";
+import { m } from "motion/react";
 import { ReminderWatcher } from "@/components/salon/reminder-watcher";
 import { NotifyPrompt } from "@/components/salon/notify-prompt";
 import { InstallPrompt } from "@/components/salon/install-prompt";
@@ -88,8 +89,8 @@ export function StaffShell() {
 
       {!hideNav && (
         <>
-          <nav className="glass-nav fixed inset-x-0 bottom-0 z-40 border-t border-line lg:hidden">
-            <div className="mx-auto grid max-w-lg grid-cols-4 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
+          <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
+            <div className="pointer-events-auto mx-auto grid max-w-lg grid-cols-4 rounded-[28px] border border-line/80 bg-[var(--glass-nav)] px-1 py-1.5 shadow-nav backdrop-blur-xl">
               {tabs.map((t) => (
                 <TabLink key={t.to} tab={t} pathname={pathname} />
               ))}
@@ -120,8 +121,18 @@ function TabLink({ tab, pathname }: { tab: (typeof tabs)[number]; pathname: stri
   return (
     <Link
       to={tab.to}
-      className={cn("flex flex-col items-center gap-1 py-1", active ? "text-ink" : "text-muted")}
+      className={cn(
+        "relative flex flex-col items-center gap-0.5 rounded-2xl py-2",
+        active ? "text-ink" : "text-muted",
+      )}
     >
+      {active && (
+        <m.span
+          layoutId="staff-tab-pill"
+          className="absolute inset-0 -z-10 rounded-2xl bg-surface-2"
+          transition={{ type: "spring", stiffness: 480, damping: 34 }}
+        />
+      )}
       <Icon className="size-5" strokeWidth={active ? 2 : 1.75} />
       <span className="text-support">{tab.label}</span>
     </Link>
