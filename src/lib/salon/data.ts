@@ -83,7 +83,7 @@ export const services: Service[] = [
     acceptsReference: true,
     depositPercent: 50,
     nextAvailable: "Tomorrow 10:00 AM",
-    featuredReview: { quote: "Amina's braids lasted eight weeks. I have never had that before.", name: "Joyce N." },
+    featuredReview: { quote: "These braids lasted eight weeks. I have never had that before.", name: "Joyce N." },
   },
   {
     id: "silk-press",
@@ -306,7 +306,7 @@ export const reviews = [
   },
   {
     id: "r3",
-    quote: "Amina's braids lasted eight weeks. I have never had that before.",
+    quote: "These braids lasted eight weeks. I have never had that before.",
     name: "Joyce N.",
     service: "Box Braids",
   },

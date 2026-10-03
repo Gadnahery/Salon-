@@ -298,8 +298,7 @@ export function LandingPage() {
             <p className="text-micro uppercase tracking-[0.18em] text-muted">Signature experience</p>
             <h2 className="mt-3 font-display text-title font-normal">Hair that feels like you.</h2>
             <p className="mt-5 max-w-md text-body text-muted">
-              Protective styles, unhurried hands, and a finish built around how you actually live. Amina and
-              Sarah take the time the work deserves.
+              Protective styles, unhurried hands, and a finish built around how you actually live. Our stylists take the time the work deserves.
             </p>
             <Link to="/app/services" search={{ category: "hair" }} className="mt-8 inline-flex items-center gap-2 text-body">
               Explore hair services
