@@ -38,17 +38,54 @@ const dot: Record<string, string> = {
   offline: "bg-muted",
 };
 
+const extraLabel: Record<string, string> = {
+  waiting: "Waiting",
+  removed: "Removed",
+  available: "Available",
+  busy: "Busy",
+  on_break: "On break",
+  offline: "Offline",
+};
+
+type Status = AppointmentStatus | QueueStatus | ShiftStatus | string;
+
+function labelFor(status: Status): string {
+  const key = String(status);
+  const appt = statusLabel(key as AppointmentStatus);
+  if (appt) return appt;
+  if (extraLabel[key]) return extraLabel[key];
+  return key.replace(/_/g, " ");
+}
+
 export function StatusPill({
   status,
-  label,
+  className,
 }: {
-  status: AppointmentStatus | QueueStatus | ShiftStatus | string;
-  label?: string;
+  status: Status;
+  className?: string;
 }) {
+  const key = String(status);
+  const live = key === "in_service" || key === "payment_pending" || key === "waiting";
+
   return (
-    <span className={cn("inline-flex items-center gap-1.5 text-support", tone[status] ?? "text-muted")}>
-      <span className={cn("size-1.5 rounded-full", dot[status] ?? "bg-muted")} />
-      {label ?? (status in tone ? statusLabel(status as AppointmentStatus) : status.replace("_", " "))}
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 py-1 text-micro uppercase tracking-[0.12em]",
+        tone[key] ?? "text-muted",
+        className,
+      )}
+    >
+      <span className="relative flex size-1.5">
+        {live && (
+          <span
+            className={cn("absolute inset-0 rounded-full opacity-50 animate-ping", dot[key] ?? "bg-muted")}
+            style={{ animationDuration: "1.8s" }}
+            aria-hidden
+          />
+        )}
+        <span className={cn("relative size-1.5 rounded-full", dot[key] ?? "bg-muted")} />
+      </span>
+      {labelFor(status)}
     </span>
   );
 }

@@ -1,5 +1,6 @@
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
 import type { Appointment, AppointmentStatus, Category, PaymentMethod } from "./types";
+export { categoryLabel, CATEGORY_ORDER as categoryOrder } from "./category-labels";
 
 export function formatTsh(n: number) {
   return `TSh ${n.toLocaleString("en-US")}`;
@@ -56,16 +57,6 @@ export function formatClock(time: string) {
   const d = new Date();
   d.setHours(h, m, 0, 0);
   return format(d, "h:mm a");
-}
-
-export function categoryLabel(c: Category) {
-  const map: Record<Category, string> = {
-    hair: "Hair",
-    nails: "Nails",
-    makeup: "Makeup",
-    treatments: "Treatments",
-  };
-  return map[c];
 }
 
 export function paymentLabel(m: PaymentMethod) {
@@ -213,7 +204,6 @@ export const TIME_GROUPS: { label: string; slots: string[] }[] = [
   { label: "Evening", slots: ["16:30", "17:30"] },
 ];
 
-export const categoryOrder: Category[] = ["hair", "nails", "makeup", "treatments"];
 
 export const SENSITIVITY_OPTIONS = ["Sensitive scalp", "Light tension", "First time", "Other"];
 

@@ -1,3 +1,4 @@
+import { ThemePortal } from "@/components/theme-portal";
 import { ReminderWatcher } from "@/components/salon/reminder-watcher";
 import { NotifyPrompt } from "@/components/salon/notify-prompt";
 import { InstallPrompt } from "@/components/salon/install-prompt";
@@ -49,6 +50,7 @@ export function StaffShell() {
 
   return (
     <div className="min-h-dvh bg-bg text-ink">
+      <ThemePortal portal="staff" />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-line bg-surface px-5 py-8 lg:flex">
         <Link to="/staff">
           <LogoWord />

@@ -14,16 +14,17 @@ export function applyTestPrices<T extends { priceMin: number; priceMax?: number;
 }
 
 export const SALON = {
-  name: "Salon",
-  short: "Salon",
-  tagline: "Your beauty. Your time.",
+  name: "Warembo Village",
+  short: "Warembo",
+  tagline: "More than Beauty... It's a lifestyle.",
+  brandWords: "Beauty | Care | Confidence",
   phone: "+255 754 221 088",
   phoneHref: "tel:+255754221088",
   whatsapp: "https://wa.me/255754221088",
-  instagram: "https://instagram.com/salon",
-  facebook: "https://facebook.com/salon",
-  tiktok: "https://tiktok.com/@salon",
-  addressLine1: "Ali Hassan Mwinyi Rd",
+  instagram: "https://instagram.com/warembovillage",
+  facebook: "https://facebook.com/warembovillage",
+  tiktok: "https://tiktok.com/@warembovillage",
+  addressLine1: "Madale, Mivumoni",
   addressLine2: "Dar es Salaam",
   hours: "Mon – Sat · 9:00 AM – 7:00 PM",
   hoursShort: "9:00 AM – 7:00 PM",
@@ -34,8 +35,8 @@ export const SALON = {
   mapsLink: "https://www.openstreetmap.org/?mlat=-6.7765&mlon=39.2705#map=16/-6.7765/39.2705",
   mapsApp: "https://maps.google.com/?q=Ali+Hassan+Mwinyi+Rd+Dar+es+Salaam",
   cancellationPolicy:
-    "Free cancellation up to 24 hours before your appointment. Within 24 hours, the deposit may be retained according to salon policy.",
-  depositPolicy: "A 50% deposit holds your chair. The remaining balance is paid at the salon after your service.",
+    "Free cancellation up to 24 hours before your appointment. Within 24 hours, the deposit may be retained according to Warembo Village policy.",
+  depositPolicy: "A 50% deposit holds your chair. The remaining balance is paid at Warembo Village after your service.",
   whatToBring: "Come with clean, detangled hair for braiding. For makeup, arrive with a clean face.",
 };
 

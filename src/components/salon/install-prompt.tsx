@@ -32,7 +32,7 @@ function isIos(): boolean {
 }
 
 /**
- * Prompt to install Booking and enable push notifications.
+ * Prompt to install Warembo and enable push notifications.
  * Used for staff, admin, and customers.
  */
 export function InstallPrompt({ portal }: { portal: Portal }) {
@@ -80,13 +80,13 @@ export function InstallPrompt({ portal }: { portal: Portal }) {
       ? "Install Admin app"
       : portal === "staff"
         ? "Install Staff app"
-        : "Install Booking";
+        : "Install Warembo";
   const body =
     portal === "admin"
-      ? "Add Booking Admin to your home screen. Stay signed in and get payment & booking alerts on your phone."
+      ? "Add Warembo Admin to your home screen. Stay signed in and get payment & booking alerts on your phone."
       : portal === "staff"
-        ? "Add Booking Staff to your home screen. Stay signed in and get new request alerts so you can confirm bookings."
-        : "Add Booking to your home screen. Allow notifications for confirmations, payment, and appointment reminders.";
+        ? "Add Warembo Staff to your home screen. Stay signed in and get new request alerts so you can confirm bookings."
+        : "Add Warembo to your home screen. Allow notifications for confirmations, payment, and appointment reminders.";
 
   function dismiss() {
     localStorage.setItem(KEY(portal), "1");

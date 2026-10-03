@@ -137,7 +137,7 @@ export function LandingPage() {
       <section id="top" className="relative min-h-dvh">
         <Photo
           src="/images/hero.jpg"
-          alt="Salon interior at golden hour"
+          alt="Warembo Village interior"
           className="absolute inset-0 size-full"
         />
         <div className="hero-scrim absolute inset-0" />
@@ -146,7 +146,7 @@ export function LandingPage() {
             className="animate-fade-up text-micro uppercase tracking-[0.22em] text-surface/80"
             style={{ animationDelay: "40ms" }}
           >
-            Salon
+            Warembo Village
           </p>
           <h1
             className="animate-fade-up mt-4 max-w-xl font-display text-hero font-normal text-surface"
@@ -246,7 +246,7 @@ export function LandingPage() {
         <div className="mx-auto grid max-w-6xl items-stretch gap-0 md:grid-cols-2">
           <Photo
             src="/images/sig-braiding.jpg"
-            alt="Hair braiding at Salon"
+            alt="Hair styling at Warembo Village"
             className="min-h-80 md:min-h-[36rem]"
           />
           <div className="flex flex-col justify-center px-5 py-16 md:px-16">
@@ -265,7 +265,7 @@ export function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
-        <p className="text-micro uppercase tracking-[0.18em] text-muted">Why Salon</p>
+        <p className="text-micro uppercase tracking-[0.18em] text-muted">Why Warembo</p>
         <h2 className="mt-3 max-w-md font-display text-title font-normal">More than an appointment.</h2>
         <div className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-line">
           {[
@@ -308,7 +308,7 @@ export function LandingPage() {
             Your space.
           </h2>
           <p className="mt-6 max-w-md text-body text-muted">
-            Salon is a quiet studio on Ali Hassan Mwinyi Road. We built it for unhurried work — braiding,
+            Warembo Village is a beauty destination in Madale, Mivumoni. We built it for unhurried work — hair, nails, makeup —
             nails, makeup, and treatments — with the same care we would want for ourselves.
           </p>
           <Link to="/app" className="mt-8 inline-flex items-center gap-2 text-body">
@@ -380,7 +380,7 @@ export function LandingPage() {
           </div>
           <div className="overflow-hidden rounded-[24px] border border-line bg-brand-soft">
             <iframe
-              title="Map of Salon"
+              title="Map of Warembo Village"
               src={SALON.mapEmbed}
               className="h-72 w-full md:h-96 grayscale"
               loading="lazy"
@@ -441,7 +441,7 @@ export function LandingPage() {
         </div>
           <div className="mx-auto max-w-6xl px-5 pb-10 text-support text-muted md:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span>© 2026 Salon</span>
+            <span>© 2026 Warembo Village</span>
             <span className="flex flex-wrap gap-4">
               <Link to="/enter" search={{ as: "customer" }} className="hover:text-ink">
                 Customer sign in

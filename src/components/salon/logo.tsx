@@ -2,14 +2,13 @@ import { cn } from "@/lib/utils";
 
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <span
-      className={cn(
-        "inline-flex size-8 items-center justify-center rounded-full bg-ink font-display text-sm tracking-tight text-surface",
-        className,
-      )}
-    >
-      UL
-    </span>
+    <img
+      src="/icons/icon-192.png"
+      alt=""
+      width={32}
+      height={32}
+      className={cn("size-8 rounded-full object-cover", className)}
+    />
   );
 }
 
@@ -20,15 +19,21 @@ export function LogoWord({
   className?: string;
   light?: boolean;
 }) {
+  const isNoir =
+    typeof document === "undefined" ||
+    document.documentElement.getAttribute("data-theme") !== "ivory";
+  const useWhite = light === true || (light !== false && isNoir);
+  const src = useWhite
+    ? "/brand/logo-white-transparent.png"
+    : "/brand/logo-black-transparent.png";
+
   return (
-    <span
-      className={cn(
-        "flex items-center gap-2.5 font-display text-lg tracking-[0.08em]",
-        light ? "text-surface" : "text-ink",
-        className,
-      )}
-    >
-      SALON
+    <span className={cn("inline-flex items-center", className)}>
+      <img
+        src={src}
+        alt="Warembo Village"
+        className="h-9 w-auto max-w-[160px] object-contain object-left"
+      />
     </span>
   );
 }

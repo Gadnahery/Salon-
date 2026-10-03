@@ -1,3 +1,4 @@
+import { ThemePortal } from "@/components/theme-portal";
 import { NotifyPrompt } from "@/components/salon/notify-prompt";
 import { InstallPrompt } from "@/components/salon/install-prompt";
 import { StaffAlertWatcher } from "@/components/staff/staff-alert-watcher";
@@ -78,6 +79,7 @@ export function AdminShell() {
 
   return (
     <div className="min-h-dvh bg-bg text-ink">
+      <ThemePortal portal="admin" />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-surface px-5 py-7 lg:flex">
         <Link to="/admin">
           <LogoWord />

@@ -2,9 +2,10 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { SalonBoot } from "@/lib/salon/boot";
+import { MotionProvider } from "@/components/motion-provider";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Booking";
+const APP_NAME = "Warembo Village";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -15,33 +16,41 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Appointment booking system. Book services around your schedule.",
+          "Warembo Village — More than Beauty... It's a lifestyle. Book Hair Clinic, Hair Salon, Makeup Studio and Nails Spa in Dar es Salaam.",
       },
-      { name: "theme-color", content: "#F7F6F3" },
+      { name: "theme-color", content: "#0A0A0A" },
+      { property: "og:title", content: APP_NAME },
+      { property: "og:description", content: "More than Beauty... It's a lifestyle." },
+      { property: "og:image", content: "/og.jpg" },
+      { name: "apple-mobile-web-app-title", content: "Warembo" },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", href: "/favicon.ico" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
+      { rel: "icon", type: "image/png", sizes: "48x48", href: "/favicon-48.png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400&family=Jost:ital,wght@0,400;0,500;0,600;1,400&family=Pinyon+Script&display=swap",
       },
       { rel: "stylesheet", href: appCss },
-      { rel: "manifest", href: "/__grok/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   component: () => (
-    <html lang="en" className="antialiased" suppressHydrationWarning>
+    <html lang="en" className="antialiased" data-theme="noir" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body className="bg-bg text-ink">
         <PreviewHostBridge />
         <AuthProvider>
-          <SalonBoot />
-          <Outlet />
+          <MotionProvider>
+            <SalonBoot />
+            <Outlet />
+          </MotionProvider>
         </AuthProvider>
         <Scripts />
       </body>

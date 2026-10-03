@@ -1,0 +1,45 @@
+/* Warembo Village design tokens. Starting point for src/styles.css.
+   Customer + Landing default to Noir. Staff + Admin default to Ivory. */
+:root,
+:root[data-theme="noir"] {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-2: #1c1c1c;
+  --ink: #ffffff;
+  --muted: #a3a3a3;
+  --line: #2a2a2a;
+  --silver: #c9ccd1;
+  --silver-hi: #f2f4f7;
+  --silver-lo: #5f636a;
+  --brand: #ffffff;
+  --brand-ink: #0a0a0a;
+  --accent-soft: rgba(255, 255, 255, 0.08);
+  --success: #4fa382;
+  --warning: #d1a04f;
+  --danger: #d8665c;
+}
+:root[data-theme="ivory"] {
+  --bg: #f6f6f5;
+  --surface: #ffffff;
+  --surface-2: #efefee;
+  --ink: #0a0a0a;
+  --muted: #6b6b6b;
+  --line: #e3e3e1;
+  --silver: #8e9298;
+  --silver-hi: #f2f4f7;
+  --silver-lo: #5f636a;
+  --brand: #0a0a0a;
+  --brand-ink: #ffffff;
+  --accent-soft: #ededec;
+  --success: #2f7a5e;
+  --warning: #a97a2c;
+  --danger: #b4443a;
+}
+:root {
+  --silver-gradient: linear-gradient(135deg, #8e9298 0%, #f2f4f7 45%, #c9ccd1 60%, #6f737a 100%);
+  --font-display: "Bodoni Moda", "Playfair Display", "Times New Roman", serif;
+  --font-sans: "Jost", "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-script: "Pinyon Script", "Great Vibes", cursive;
+  --radius-card: 22px;
+  --radius-sheet: 28px;
+}

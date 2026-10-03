@@ -9,7 +9,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("push", (event) => {
   let data = {
-    title: "Booking",
+    title: "Warembo Village",
     body: "You have a new update",
     url: "/staff",
     tag: "booking-push",
@@ -28,7 +28,7 @@ self.addEventListener("push", (event) => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title || "Booking", {
+    self.registration.showNotification(data.title || "Warembo Village", {
       body: data.body || "",
       icon: "/icons/booking-192.png",
       badge: "/icons/booking-192.png",

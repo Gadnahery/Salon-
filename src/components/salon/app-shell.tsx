@@ -1,3 +1,4 @@
+import { ThemePortal } from "@/components/theme-portal";
 import { ReminderWatcher } from "@/components/salon/reminder-watcher";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
@@ -66,6 +67,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-dvh bg-bg text-ink">
+      <ThemePortal portal="customer" />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-surface px-6 py-8 lg:flex">
         <Link to="/">
           <LogoWord />
