@@ -18,7 +18,7 @@ export const Route = createRootRoute({
         content:
           "Warembo Village — More than Beauty... It's a lifestyle. Book Hair Clinic, Hair Salon, Makeup Studio and Nails Spa in Dar es Salaam.",
       },
-      { name: "theme-color", content: "#0A0A0A" },
+      { name: "theme-color", content: "#F6F6F5" },
       { property: "og:title", content: APP_NAME },
       { property: "og:description", content: "More than Beauty... It's a lifestyle." },
       { property: "og:image", content: "/og.jpg" },
@@ -40,7 +40,7 @@ export const Route = createRootRoute({
     ],
   }),
   component: () => (
-    <html lang="en" className="antialiased" data-theme="noir" suppressHydrationWarning>
+    <html lang="en" className="antialiased" data-theme="ivory" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

@@ -1,4 +1,5 @@
 import { LandingSmoothScroll } from "@/components/landing/smooth-scroll";
+import { ThemePortal } from "@/components/theme-portal";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -47,6 +48,7 @@ export function LandingPage() {
 
   return (
     <div className="bg-bg text-ink">
+      <ThemePortal portal="public" />
       <LandingSmoothScroll />
       <header
         className={cn(
