@@ -13,3 +13,4 @@ export * from "./review";
 export * from "./marketing";
 export * from "./media";
 export * from "./integration";
+export * from "./waitlist";

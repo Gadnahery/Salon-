@@ -44,6 +44,7 @@ const nav = [
 
 const lower = [
   { to: "/admin/notifications", label: "Notifications", icon: Bell },
+  { to: "/admin/integrations", label: "Integrations", icon: Settings },
   { to: "/admin/settings", label: "Settings", icon: Settings },
   { to: "/admin/audit", label: "Audit log", icon: ScrollText },
 ];

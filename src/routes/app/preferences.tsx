@@ -9,6 +9,7 @@ import {
   type ThemeId,
 } from "@/lib/theme";
 import { cn, useHydrated } from "@/lib/utils";
+import { detectLocale, setStoredLocale, type Locale } from "@/lib/i18n";
 
 export const Route = createFileRoute("/app/preferences")({ component: PrefsPage });
 
@@ -17,11 +18,13 @@ function PrefsPage() {
   const setProfile = useSalonStore((s) => s.setProfile);
   const hydrated = useHydrated();
   const [theme, setTheme] = useState<ThemeId>("ivory");
+  const [locale, setLocale] = useState<Locale>("en");
 
   useEffect(() => {
-    const t = getStoredTheme() ?? "ivory";
-    setTheme(t);
-    applyTheme(t);
+    const th = getStoredTheme() ?? "ivory";
+    setTheme(th);
+    applyTheme(th);
+    setLocale(detectLocale());
   }, []);
 
   return (
@@ -40,6 +43,28 @@ function PrefsPage() {
           on={hydrated && profile.stylistReadyAlerts}
           onChange={(v) => setProfile({ stylistReadyAlerts: v })}
         />
+      </ul>
+
+      <p className="mx-5 mt-8 text-micro uppercase tracking-[0.16em] text-muted">Language</p>
+      <ul className="mx-5 mt-3 overflow-hidden rounded-[28px] bg-surface shadow-soft">
+        <li className="flex items-center justify-between gap-4 px-5 py-4">
+          <span>
+            <span className="block text-body">Language / Lugha</span>
+            <span className="block text-support text-muted">English or Kiswahili</span>
+          </span>
+          <select
+            className="h-10 rounded-full border border-line bg-bg px-3 text-support"
+            value={locale}
+            onChange={(e) => {
+              const next = e.target.value as Locale;
+              setLocale(next);
+              setStoredLocale(next);
+            }}
+          >
+            <option value="en">English</option>
+            <option value="sw">Kiswahili</option>
+          </select>
+        </li>
       </ul>
 
       <p className="mx-5 mt-8 text-micro uppercase tracking-[0.16em] text-muted">Appearance</p>

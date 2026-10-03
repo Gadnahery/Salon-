@@ -21,6 +21,7 @@ import { Route as AdminAuditRouteImport } from './routes/admin/audit'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
 import { Route as AdminCalendarRouteImport } from './routes/admin/calendar'
 import { Route as AdminGalleryRouteImport } from './routes/admin/gallery'
+import { Route as AdminIntegrationsRouteImport } from './routes/admin/integrations'
 import { Route as AdminMarketingRouteImport } from './routes/admin/marketing'
 import { Route as AdminNotificationsRouteImport } from './routes/admin/notifications'
 import { Route as AdminPaymentsRouteImport } from './routes/admin/payments'
@@ -50,7 +51,10 @@ import { Route as AdminCustomersIdRouteImport } from './routes/admin/customers/$
 import { Route as AdminStaffIndexRouteImport } from './routes/admin/staff/index'
 import { Route as AdminStaffIdRouteImport } from './routes/admin/staff/$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiCronRemindersRouteImport } from './routes/api/cron/reminders'
 import { Route as ApiPaymentsWebhookRouteImport } from './routes/api/payments/webhook'
+import { Route as ApiWebhooksSmsRouteImport } from './routes/api/webhooks/sms'
+import { Route as ApiWebhooksWhatsappRouteImport } from './routes/api/webhooks/whatsapp'
 import { Route as AppAppointmentsIndexRouteImport } from './routes/app/appointments/index'
 import { Route as AppAppointmentsIdRouteImport } from './routes/app/appointments/$id'
 import { Route as AppBookIndexRouteImport } from './routes/app/book/index'
@@ -119,6 +123,11 @@ const AdminCalendarRoute = AdminCalendarRouteImport.update({
 const AdminGalleryRoute = AdminGalleryRouteImport.update({
   id: '/gallery',
   path: '/gallery',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminMarketingRoute = AdminMarketingRouteImport.update({
@@ -266,9 +275,24 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronRemindersRoute = ApiCronRemindersRouteImport.update({
+  id: '/api/cron/reminders',
+  path: '/api/cron/reminders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPaymentsWebhookRoute = ApiPaymentsWebhookRouteImport.update({
   id: '/api/payments/webhook',
   path: '/api/payments/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWebhooksSmsRoute = ApiWebhooksSmsRouteImport.update({
+  id: '/api/webhooks/sms',
+  path: '/api/webhooks/sms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWebhooksWhatsappRoute = ApiWebhooksWhatsappRouteImport.update({
+  id: '/api/webhooks/whatsapp',
+  path: '/api/webhooks/whatsapp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppAppointmentsIndexRoute = AppAppointmentsIndexRouteImport.update({
@@ -329,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/calendar': typeof AdminCalendarRoute
   '/admin/gallery': typeof AdminGalleryRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -357,7 +382,10 @@ export interface FileRoutesByFullPath {
   '/admin/customers/$id': typeof AdminCustomersIdRoute
   '/admin/staff/$id': typeof AdminStaffIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/reminders': typeof ApiCronRemindersRoute
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
+  '/api/webhooks/sms': typeof ApiWebhooksSmsRoute
+  '/api/webhooks/whatsapp': typeof ApiWebhooksWhatsappRoute
   '/app/appointments/$id': typeof AppAppointmentsIdRoute
   '/app/book/success': typeof AppBookSuccessRoute
   '/app/services/$serviceId': typeof AppServicesServiceIdRoute
@@ -379,6 +407,7 @@ export interface FileRoutesByTo {
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/calendar': typeof AdminCalendarRoute
   '/admin/gallery': typeof AdminGalleryRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -407,7 +436,10 @@ export interface FileRoutesByTo {
   '/admin/customers/$id': typeof AdminCustomersIdRoute
   '/admin/staff/$id': typeof AdminStaffIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/reminders': typeof ApiCronRemindersRoute
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
+  '/api/webhooks/sms': typeof ApiWebhooksSmsRoute
+  '/api/webhooks/whatsapp': typeof ApiWebhooksWhatsappRoute
   '/app/appointments/$id': typeof AppAppointmentsIdRoute
   '/app/book/success': typeof AppBookSuccessRoute
   '/app/services/$serviceId': typeof AppServicesServiceIdRoute
@@ -433,6 +465,7 @@ export interface FileRoutesById {
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/calendar': typeof AdminCalendarRoute
   '/admin/gallery': typeof AdminGalleryRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -461,7 +494,10 @@ export interface FileRoutesById {
   '/admin/customers/$id': typeof AdminCustomersIdRoute
   '/admin/staff/$id': typeof AdminStaffIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/reminders': typeof ApiCronRemindersRoute
   '/api/payments/webhook': typeof ApiPaymentsWebhookRoute
+  '/api/webhooks/sms': typeof ApiWebhooksSmsRoute
+  '/api/webhooks/whatsapp': typeof ApiWebhooksWhatsappRoute
   '/app/appointments/$id': typeof AppAppointmentsIdRoute
   '/app/book/success': typeof AppBookSuccessRoute
   '/app/services/$serviceId': typeof AppServicesServiceIdRoute
@@ -488,6 +524,7 @@ export interface FileRouteTypes {
     | '/admin/bookings'
     | '/admin/calendar'
     | '/admin/gallery'
+    | '/admin/integrations'
     | '/admin/marketing'
     | '/admin/notifications'
     | '/admin/payments'
@@ -516,7 +553,10 @@ export interface FileRouteTypes {
     | '/admin/customers/$id'
     | '/admin/staff/$id'
     | '/api/auth/$'
+    | '/api/cron/reminders'
     | '/api/payments/webhook'
+    | '/api/webhooks/sms'
+    | '/api/webhooks/whatsapp'
     | '/app/appointments/$id'
     | '/app/book/success'
     | '/app/services/$serviceId'
@@ -538,6 +578,7 @@ export interface FileRouteTypes {
     | '/admin/bookings'
     | '/admin/calendar'
     | '/admin/gallery'
+    | '/admin/integrations'
     | '/admin/marketing'
     | '/admin/notifications'
     | '/admin/payments'
@@ -566,7 +607,10 @@ export interface FileRouteTypes {
     | '/admin/customers/$id'
     | '/admin/staff/$id'
     | '/api/auth/$'
+    | '/api/cron/reminders'
     | '/api/payments/webhook'
+    | '/api/webhooks/sms'
+    | '/api/webhooks/whatsapp'
     | '/app/appointments/$id'
     | '/app/book/success'
     | '/app/services/$serviceId'
@@ -591,6 +635,7 @@ export interface FileRouteTypes {
     | '/admin/bookings'
     | '/admin/calendar'
     | '/admin/gallery'
+    | '/admin/integrations'
     | '/admin/marketing'
     | '/admin/notifications'
     | '/admin/payments'
@@ -619,7 +664,10 @@ export interface FileRouteTypes {
     | '/admin/customers/$id'
     | '/admin/staff/$id'
     | '/api/auth/$'
+    | '/api/cron/reminders'
     | '/api/payments/webhook'
+    | '/api/webhooks/sms'
+    | '/api/webhooks/whatsapp'
     | '/app/appointments/$id'
     | '/app/book/success'
     | '/app/services/$serviceId'
@@ -642,7 +690,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SetupRoute: typeof SetupRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCronRemindersRoute: typeof ApiCronRemindersRoute
   ApiPaymentsWebhookRoute: typeof ApiPaymentsWebhookRoute
+  ApiWebhooksSmsRoute: typeof ApiWebhooksSmsRoute
+  ApiWebhooksWhatsappRoute: typeof ApiWebhooksWhatsappRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -729,6 +780,13 @@ declare module '@tanstack/react-router' {
       path: '/gallery'
       fullPath: '/admin/gallery'
       preLoaderRoute: typeof AdminGalleryRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/integrations': {
+      id: '/admin/integrations'
+      path: '/integrations'
+      fullPath: '/admin/integrations'
+      preLoaderRoute: typeof AdminIntegrationsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/marketing': {
@@ -934,11 +992,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/reminders': {
+      id: '/api/cron/reminders'
+      path: '/api/cron/reminders'
+      fullPath: '/api/cron/reminders'
+      preLoaderRoute: typeof ApiCronRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/payments/webhook': {
       id: '/api/payments/webhook'
       path: '/api/payments/webhook'
       fullPath: '/api/payments/webhook'
       preLoaderRoute: typeof ApiPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/webhooks/sms': {
+      id: '/api/webhooks/sms'
+      path: '/api/webhooks/sms'
+      fullPath: '/api/webhooks/sms'
+      preLoaderRoute: typeof ApiWebhooksSmsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/webhooks/whatsapp': {
+      id: '/api/webhooks/whatsapp'
+      path: '/api/webhooks/whatsapp'
+      fullPath: '/api/webhooks/whatsapp'
+      preLoaderRoute: typeof ApiWebhooksWhatsappRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/appointments/': {
@@ -1012,6 +1091,7 @@ interface AdminRouteRouteChildren {
   AdminBookingsRoute: typeof AdminBookingsRoute
   AdminCalendarRoute: typeof AdminCalendarRoute
   AdminGalleryRoute: typeof AdminGalleryRoute
+  AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
   AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
@@ -1032,6 +1112,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminBookingsRoute: AdminBookingsRoute,
   AdminCalendarRoute: AdminCalendarRoute,
   AdminGalleryRoute: AdminGalleryRoute,
+  AdminIntegrationsRoute: AdminIntegrationsRoute,
   AdminMarketingRoute: AdminMarketingRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
@@ -1130,7 +1211,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SetupRoute: SetupRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCronRemindersRoute: ApiCronRemindersRoute,
   ApiPaymentsWebhookRoute: ApiPaymentsWebhookRoute,
+  ApiWebhooksSmsRoute: ApiWebhooksSmsRoute,
+  ApiWebhooksWhatsappRoute: ApiWebhooksWhatsappRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

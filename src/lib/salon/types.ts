@@ -75,7 +75,11 @@ export type WaitlistEntry = {
   customerName: string;
   customerPhone: string;
   createdAt: string;
-  status: "waiting" | "offered" | "booked" | "cancelled";
+  status: "waiting" | "offered" | "accepted" | "declined" | "expired" | "booked" | "cancelled";
+  /** When status is offered */
+  offeredDate?: string;
+  offeredTime?: string;
+  offerExpiresAt?: string;
 };
 
 export type Appointment = {

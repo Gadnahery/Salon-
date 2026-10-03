@@ -1,3 +1,4 @@
+import { candidatesForFreedAppointment } from "@/lib/engines/waitlist";
 import { customerIdFromPhone, phonesMatch, toLocalTzPhone } from "@/lib/salon/format";
 import { notifyEvent } from "@/lib/notifications/web-push";
 import { create } from "zustand";
@@ -184,6 +185,7 @@ type SalonState = {
   updateGalleryItem: (id: string, patch: Partial<GalleryItem>) => void;
   removeGalleryItem: (id: string) => void;
   joinWaitlist: (entry: Omit<WaitlistEntry, "id" | "createdAt" | "status">) => WaitlistEntry;
+  offerWaitlistSlot: (entryId: string, date: string, time: string, holdMinutes?: number) => void;
   cancelWaitlist: (id: string) => void;
   confirmProvider: (id: string) => void;
   declineProvider: (id: string) => void;
@@ -650,6 +652,15 @@ export const useSalonStore = create<SalonState>()(
           audit: get().audit[0],
           queue: get().queue,
         });
+        // Waitlist backfill: offer freed slot to first matching waiter (local; no booking engine change)
+        try {
+          const match = candidatesForFreedAppointment(get().waitlist, current)[0];
+          if (match) {
+            get().offerWaitlistSlot(match.id, current.date, current.time, 15);
+          }
+        } catch {
+          /* waitlist optional */
+        }
       },
       checkIn: (id) => {
         const current = get().appointments.find((a) => a.id === id);
@@ -1094,6 +1105,33 @@ export const useSalonStore = create<SalonState>()(
           ],
         });
         return row;
+      },
+      offerWaitlistSlot: (entryId, date, time, holdMinutes = 15) => {
+        const expiresAt = new Date(Date.now() + holdMinutes * 60_000).toISOString();
+        set({
+          waitlist: get().waitlist.map((w) =>
+            w.id === entryId
+              ? {
+                  ...w,
+                  status: "offered" as const,
+                  offeredDate: date,
+                  offeredTime: time,
+                  offerExpiresAt: expiresAt,
+                }
+              : w,
+          ),
+          notices: [
+            {
+              id: `n-wlo-${Date.now()}`,
+              title: "Slot available",
+              body: `A time opened on ${date} at ${time}. Accept within ${holdMinutes} minutes.`,
+              time: new Date().toISOString(),
+              read: false,
+              audience: "customer" as const,
+            },
+            ...get().notices,
+          ],
+        });
       },
       cancelWaitlist: (id) =>
         set({
