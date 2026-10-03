@@ -11,6 +11,7 @@ import { waitingMinutes } from "@/lib/engines/queue";
 import { todayKey } from "@/lib/engines/schedule";
 import type { ShiftStatus } from "@/lib/salon/types";
 import { cn, useHydrated } from "@/lib/utils";
+import { SwipeAppointmentRow } from "@/components/staff/swipe-appointment-row";
 
 export const Route = createFileRoute("/staff/")({ component: StaffToday });
 
@@ -28,6 +29,7 @@ function StaffToday() {
   const setStaffStatus = useSalonStore((s) => s.setStaffStatus);
   const queue = useSalonStore((s) => s.queue);
   const startService = useSalonStore((s) => s.startService);
+  const markNoShow = useSalonStore((s) => s.markNoShow);
   const completeService = useSalonStore((s) => s.completeService);
   const lastCompletedId = useSalonStore((s) => s.lastCompletedId);
   const appointments = useStaffAppointments();
@@ -238,10 +240,6 @@ function StaffToday() {
         </section>
       )}
 
-      <section className="mt-10">
-        <p className="text-micro uppercase tracking-[0.16em] text-muted">Today’s appointments</p>
-        <ol className="mt-4 space-y-0">
-          
       {waitlist.length > 0 && (
         <section className="mt-6 rounded-[24px] border border-line bg-surface p-5">
           <p className="text-section font-normal">Waitlist</p>
@@ -259,21 +257,27 @@ function StaffToday() {
         </section>
       )}
 
+      <section className="mt-10">
+        <p className="text-micro uppercase tracking-[0.16em] text-muted">Today&apos;s appointments</p>
+        <p className="mt-1 text-support text-muted">Swipe right to start · left for no-show</p>
+        <ol className="mt-4 space-y-0">
           {timeline.map((a) => (
-            <li key={a.id} className="grid grid-cols-[4.5rem_1fr] gap-3">
-              <p className="pt-1 text-support tabular-nums text-muted">{formatClock(a.time)}</p>
-              <Link
-                to="/staff/appointments/$id"
-                params={{ id: a.id }}
-                className="border-l border-line pb-5 pl-4"
-              >
-                <p className="text-body font-medium">{a.customerName}</p>
-                <p className="text-support text-muted">{getService(a.serviceId)?.name}</p>
-                <div className="mt-1">
-                  <StatusPill status={a.status} />
-                </div>
-              </Link>
-            </li>
+            <SwipeAppointmentRow
+              key={a.id}
+              appointment={a}
+              onStart={
+                a.status === "checked_in"
+                  ? (id) => setConfirm({ id, kind: "start" })
+                  : undefined
+              }
+              onNoShow={
+                a.status === "confirmed" || a.status === "checked_in"
+                  ? (id) => {
+                      if (window.confirm("Mark as no-show?")) markNoShow(id);
+                    }
+                  : undefined
+              }
+            />
           ))}
           {timeline.length === 0 && <p className="text-body text-muted">No appointments on the book today.</p>}
         </ol>

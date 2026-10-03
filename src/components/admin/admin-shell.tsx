@@ -80,11 +80,11 @@ export function AdminShell() {
   return (
     <div className="min-h-dvh bg-bg text-ink">
       <ThemePortal portal="admin" />
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-surface px-5 py-7 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-surface px-5 py-7 shadow-soft lg:flex">
         <Link to="/admin">
           <LogoWord />
         </Link>
-        <p className="mt-2 text-micro uppercase tracking-[0.16em] text-muted">Admin</p>
+        <p className="mt-2 text-micro uppercase tracking-[0.16em] text-muted">Warembo · Admin</p>
         <NavList pathname={pathname} />
         <div className="mt-auto flex items-center gap-3 px-2 pt-4">
           <span className="flex size-9 items-center justify-center rounded-full bg-ink font-display text-sm text-white">

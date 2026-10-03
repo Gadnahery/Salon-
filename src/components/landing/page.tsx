@@ -1,3 +1,4 @@
+import { LandingSmoothScroll } from "@/components/landing/smooth-scroll";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -17,8 +18,8 @@ import { Button } from "@/components/ui/button";
 import { LogoWord } from "@/components/salon/logo";
 import { Photo } from "@/components/salon/photo";
 import { Stars } from "@/components/salon/stars";
-import { SALON, reviews, services } from "@/lib/salon/data"
-import { categoryLabel, CATEGORY_ORDER } from "@/lib/salon/category-labels";;
+import { SALON, reviews, services } from "@/lib/salon/data";
+import { categoryLabel, CATEGORY_ORDER } from "@/lib/salon/category-labels";
 import { formatDuration, formatPriceRange } from "@/lib/salon/format";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +47,7 @@ export function LandingPage() {
 
   return (
     <div className="bg-bg text-ink">
+      <LandingSmoothScroll />
       <header
         className={cn(
           "fixed inset-x-0 top-0 z-40 transition-[background-color,box-shadow,color] duration-300",
@@ -136,11 +138,16 @@ export function LandingPage() {
       )}
 
       <section id="top" className="relative min-h-dvh">
-        <Photo
-          src="/images/hero.jpg"
-          alt="Warembo Village interior"
-          className="absolute inset-0 size-full"
-        />
+        <div className="absolute inset-0 overflow-hidden">
+          <div data-parallax className="absolute inset-[-8%] size-[116%]">
+            <Photo
+              src="/images/hero.jpg"
+              alt="Warembo Village interior"
+              className="size-full"
+              priority
+            />
+          </div>
+        </div>
         <div className="hero-scrim absolute inset-0" />
         <div className="relative mx-auto flex min-h-dvh max-w-6xl flex-col justify-end px-5 pb-20 pt-32 md:px-8 md:pb-24">
           <p
@@ -193,7 +200,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="services" className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
+      <section id="services" data-reveal className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
         <p className="text-micro uppercase tracking-[0.18em] text-muted">Four houses of beauty</p>
         <h2 className="mt-3 font-display text-title font-normal">Find your next look.</h2>
         <p className="mt-3 max-w-lg text-body text-muted">
@@ -247,7 +254,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-surface">
+      <section data-reveal className="bg-surface">
         <div className="mx-auto grid max-w-6xl items-stretch gap-0 md:grid-cols-2">
           <Photo
             src="/images/sig-braiding.jpg"
@@ -270,7 +277,7 @@ export function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
-        <p className="text-micro uppercase tracking-[0.18em] text-muted">Why Warembo</p>
+        <p data-reveal className="text-micro uppercase tracking-[0.18em] text-muted">Why Warembo</p>
         <h2 className="mt-3 max-w-md font-display text-title font-normal">More than an appointment.</h2>
         <div className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-line">
           {[
