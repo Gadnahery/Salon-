@@ -249,7 +249,7 @@ function StaffToday() {
               <li key={w.id} className="rounded-2xl bg-bg px-4 py-3 text-body">
                 <span className="font-medium">{w.customerName}</span>
                 <span className="block text-support text-muted">
-                  {w.date} · {w.serviceId}
+                  {w.preferredDate} · {w.serviceId}
                 </span>
               </li>
             ))}

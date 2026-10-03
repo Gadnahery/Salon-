@@ -60,9 +60,11 @@ function labelFor(status: Status): string {
 export function StatusPill({
   status,
   className,
+  label,
 }: {
   status: Status;
   className?: string;
+  label?: string;
 }) {
   const key = String(status);
   const live = key === "in_service" || key === "payment_pending" || key === "waiting";
@@ -85,7 +87,7 @@ export function StatusPill({
         )}
         <span className={cn("relative size-1.5 rounded-full", dot[key] ?? "bg-muted")} />
       </span>
-      {labelFor(status)}
+      {label ?? labelFor(status)}
     </span>
   );
 }

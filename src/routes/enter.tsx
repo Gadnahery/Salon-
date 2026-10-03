@@ -100,7 +100,6 @@ function EnterPage() {
               inputMode="tel"
               autoComplete="tel"
               placeholder="07XXXXXXXX"
-              autoComplete="tel"
               required
             />
           </div>
