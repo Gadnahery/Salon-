@@ -28,6 +28,7 @@ export function ServiceCard({
         whileHover={{ y: -4 }}
         whileTap={{ scale: 0.97 }}
         transition={{ type: "spring", stiffness: 400, damping: 28 }}
+        layoutId={`svc-img-${service.id}`}
         className="overflow-hidden rounded-[28px]"
       >
       <Photo

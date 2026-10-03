@@ -18,12 +18,15 @@ export function applyTheme(theme: ThemeId) {
   }
 }
 
-/** Default is Ivory (light) for every portal — premium light look. */
+/** Light Ivory is always the default. Dark (noir) only if user chose it in Preferences. */
 export function themeForPortal(
-  portal: "customer" | "staff" | "admin" | "public",
+  _portal: "customer" | "staff" | "admin" | "public",
 ): ThemeId {
   const stored = getStoredTheme();
-  if (stored) return stored;
-  void portal;
+  if (stored === "noir") return "noir";
   return "ivory";
+}
+
+export function setThemePreference(theme: ThemeId) {
+  applyTheme(theme);
 }

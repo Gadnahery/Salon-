@@ -369,7 +369,7 @@ export async function claimStaffAfterLogin(input: {
   accessToken: string;
 }): Promise<StaffAccount | null> {
   const email = input.email.trim().toLowerCase();
-  let account = await fetchMyStaffAccount(input.accessToken, input.userId, email);
+  const account = await fetchMyStaffAccount(input.accessToken, input.userId, email);
   if (account) return account;
 
   // Owner email always allowed to claim admin once signed in via Supabase Auth

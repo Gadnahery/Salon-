@@ -1,4 +1,5 @@
 import { ThemePortal } from "@/components/theme-portal";
+import { PageTransition } from "@/components/page-transition";
 import { m } from "motion/react";
 import { ReminderWatcher } from "@/components/salon/reminder-watcher";
 import { useEffect, useState } from "react";
@@ -126,7 +127,9 @@ export function AppShell() {
           </div>
         </div>
       )}
-      <Outlet />
+      <PageTransition routeKey={pathname}>
+        <Outlet />
+      </PageTransition>
       </div>
 
       {!hideNav && (

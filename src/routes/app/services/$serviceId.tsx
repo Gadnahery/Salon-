@@ -1,3 +1,4 @@
+import { m } from "motion/react";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronDown, Heart } from "lucide-react";
@@ -43,13 +44,15 @@ function ServiceDetail() {
   return (
     <main className="mx-auto min-h-dvh max-w-5xl pb-28 lg:grid lg:grid-cols-2 lg:gap-12 lg:px-8 lg:pt-8 lg:pb-10">
       <div className="relative">
-        <Photo
-          src={service.gallery[photo] ?? service.image}
-          alt={service.name}
-          position={service.imagePosition}
-          transitionName={`svc-${service.id}`}
-          className="h-[48vh] w-full lg:h-full lg:min-h-[36rem] lg:rounded-[24px]"
-        />
+        <m.div layoutId={`svc-img-${service.id}`} className="overflow-hidden lg:rounded-[28px]">
+          <Photo
+            src={service.gallery[photo] ?? service.image}
+            alt={service.name}
+            position={service.imagePosition}
+            transitionName={`svc-${service.id}`}
+            className="h-[48vh] w-full rounded-none lg:h-full lg:min-h-[36rem] lg:rounded-[28px]"
+          />
+        </m.div>
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3 lg:hidden">
           <ScreenHeader
             light

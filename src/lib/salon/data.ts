@@ -288,38 +288,7 @@ export const services: Service[] = [
   },
 ];
 
-export const stylists: Stylist[] = [
-  {
-    id: "sarah",
-    name: "Sarah",
-    title: "Senior Stylist",
-    bio: "Fifteen years in the chair. Hair, makeup, and the kind of calm that makes the whole visit feel easy.",
-    specialties: ["hair", "makeup"],
-    image: "/images/sarah.jpg",
-    initials: "S",
-    rating: 4.9,
-  },
-  {
-    id: "amina",
-    name: "Amina",
-    title: "Braiding Specialist",
-    bio: "Protective styles that last. Precise parts, comfortable tension, and a finish people notice.",
-    specialties: ["hair"],
-    image: "/images/amina.jpg",
-    initials: "A",
-    rating: 5,
-  },
-  {
-    id: "grace",
-    name: "Grace",
-    title: "Nail Artist",
-    bio: "Clean lines, thoughtful colour, and hands that never rush a set.",
-    specialties: ["nails"],
-    image: "/images/grace.jpg",
-    initials: "G",
-    rating: 4.8,
-  },
-];
+export const stylists: Stylist[] = [];
 
 export const reviews = [
   {
@@ -365,9 +334,6 @@ export const gallery = [
   { src: "/images/sig-braiding.jpg", alt: "Braiding in the sunlit salon", category: "Hair" as const },
   { src: "/images/waiting.jpg", alt: "The waiting room", category: "Salon" as const },
   { src: "/images/cta.jpg", alt: "Evening light through the salon windows", category: "Salon" as const },
-  { src: "/images/amina.jpg", alt: "Amina, braiding specialist", category: "Team" as const },
-  { src: "/images/sarah.jpg", alt: "Sarah, senior stylist", category: "Team" as const },
-  { src: "/images/grace.jpg", alt: "Grace, nail artist", category: "Team" as const },
 ];
 
 export const signatures = [

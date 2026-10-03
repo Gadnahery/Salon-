@@ -57,7 +57,7 @@ export function LandingPage() {
         )}
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:h-20 md:px-8">
-          <a href="#top">
+          <a href="#top" className="animate-fade-up" data-logo-reveal>
             <LogoWord light={!scrolled} />
           </a>
           <nav className="hidden items-center gap-8 md:flex">
@@ -145,7 +145,7 @@ export function LandingPage() {
             <Photo
               src="/images/hero.jpg"
               alt="Warembo Village interior"
-              className="size-full"
+              className="size-full [mask-image:linear-gradient(to_bottom,black_70%,transparent)]"
               priority
             />
           </div>
@@ -208,6 +208,37 @@ export function LandingPage() {
         <p className="mt-3 max-w-lg text-body text-muted">
           Hair Clinic, Hair Salon, Makeup Studio and Nails Spa — choose a service that fits you.
         </p>
+        <div data-reveal className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          {CATEGORY_ORDER.map((c) => (
+            <Link
+              key={c}
+              to="/app/services"
+              search={{ category: c }}
+              className="group flex flex-col overflow-hidden rounded-[28px] border border-line bg-surface shadow-soft transition-transform duration-300 active:scale-[0.98]"
+            >
+              <div className="aspect-[4/3] overflow-hidden bg-surface-2">
+                <Photo
+                  src={
+                    c === "treatments"
+                      ? "/images/gallery-work.jpg"
+                      : c === "hair"
+                        ? "/images/gallery-braids.jpg"
+                        : c === "makeup"
+                          ? "/images/gallery-makeup.jpg"
+                          : "/images/gallery-nails.jpg"
+                  }
+                  alt={categoryLabel(c)}
+                  className="size-full rounded-none"
+                  imgClassName="transition-transform duration-700 group-hover:scale-[1.05]"
+                />
+              </div>
+              <p className="px-3 py-3 font-display text-body tracking-tight text-ink md:px-4 md:py-4">
+                {categoryLabel(c)}
+              </p>
+            </Link>
+          ))}
+        </div>
+
         <div className="mt-8 flex gap-2 overflow-x-auto hide-scroll">
           {(["all", "hair", "nails", "makeup", "treatments"] as const).map((c) => (
             <button
