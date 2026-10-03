@@ -18,11 +18,19 @@ export const Route = createRootRoute({
         content:
           "Warembo Village — More than Beauty... It's a lifestyle. Book Hair Clinic, Hair Salon, Makeup Studio and Nails Spa in Dar es Salaam.",
       },
-      { name: "theme-color", content: "#F6F6F5" },
+      { name: "theme-color", content: "#F3EFE6" },
+      {
+        name: "keywords",
+        content:
+          "salon Dar es Salaam, beauty salon Madale, hair braiding Tanzania, nail spa Dar, makeup studio Mivumoni, Warembo Village, book salon appointment Tanzania, hair clinic Dar es Salaam",
+      },
+      { name: "geo.region", content: "TZ-02" },
+      { name: "geo.placename", content: "Dar es Salaam" },
+      
       { property: "og:title", content: APP_NAME },
       { property: "og:description", content: "More than Beauty... It's a lifestyle." },
       { property: "og:image", content: "/og.jpg" },
-      { name: "apple-mobile-web-app-title", content: "Warembo" },
+      { name: "apple-mobile-web-app-title", content: "Warembo Village" },
     ],
     links: [
       { rel: "icon", href: "/favicon.ico" },
@@ -37,6 +45,8 @@ export const Route = createRootRoute({
       },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "canonical", href: "https://wsalon-six.vercel.app/" },
+      { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
     ],
   }),
   component: () => (

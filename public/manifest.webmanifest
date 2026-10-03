@@ -1,11 +1,11 @@
 {
   "name": "Warembo Village",
-  "short_name": "Warembo",
-  "description": "More than Beauty... It's a lifestyle. Book Hair Clinic, Hair Salon, Makeup Studio and Nails Spa.",
+  "short_name": "Warembo Village",
+  "description": "More than Beauty... It's a lifestyle. Book Hair Clinic, Hair Salon, Makeup Studio and Nails Spa in Dar es Salaam.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F6F6F5",
-  "theme_color": "#F6F6F5",
+  "background_color": "#F3EFE6",
+  "theme_color": "#F3EFE6",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },

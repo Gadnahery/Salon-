@@ -1,3 +1,4 @@
+import { m } from "motion/react";
 import { Link } from "@tanstack/react-router";
 import { Photo } from "./photo";
 import { formatDuration, formatPriceRange } from "@/lib/salon/format";
@@ -18,19 +19,26 @@ export function ServiceCard({
       to="/app/services/$serviceId"
       params={{ serviceId: service.id }}
       className={cn(
-        "group flex shrink-0 flex-col overflow-hidden text-left transition-transform duration-300 ease-out active:scale-[0.985]",
+        "group flex shrink-0 flex-col overflow-hidden text-left",
         large ? "w-64" : "w-full",
         className,
       )}
     >
+      <m.div
+        whileHover={{ y: -4 }}
+        whileTap={{ scale: 0.97 }}
+        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+        className="overflow-hidden rounded-[28px]"
+      >
       <Photo
         src={service.image}
         alt={service.name}
         position={service.imagePosition}
         transitionName={`svc-${service.id}`}
-        className={cn("w-full rounded-[20px]", large ? "h-80" : "aspect-4/5")}
-        imgClassName="transition-transform duration-700 group-hover:scale-[1.03]"
+        className={cn("w-full rounded-[28px]", large ? "h-80" : "aspect-4/5")}
+        imgClassName="transition-transform duration-700 group-hover:scale-[1.04]"
       />
+      </m.div>
       <div className="flex flex-col gap-1 pt-3">
         <p className="text-body font-medium tracking-tight text-ink">{service.name}</p>
         <p className="text-support text-muted">

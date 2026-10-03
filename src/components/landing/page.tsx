@@ -204,7 +204,7 @@ export function LandingPage() {
 
       <section id="services" data-reveal className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
         <p className="text-micro uppercase tracking-[0.18em] text-muted">Four houses of beauty</p>
-        <h2 className="mt-3 font-display text-title font-normal">Find your next look.</h2>
+        <h2 className="mt-3 font-display text-title font-normal tracking-tight">Find your next look.</h2>
         <p className="mt-3 max-w-lg text-body text-muted">
           Hair Clinic, Hair Salon, Makeup Studio and Nails Spa — choose a service that fits you.
         </p>
@@ -233,7 +233,7 @@ export function LandingPage() {
                 params={{ serviceId: s.id }}
                 className="group w-72 shrink-0 md:w-auto"
               >
-                <div className="overflow-hidden rounded-[24px]">
+                <div className="overflow-hidden rounded-[28px] shadow-soft">
                   <Photo
                     src={s.image}
                     alt={s.name}

@@ -391,71 +391,7 @@ const WEEKDAY_HOURS = [1, 2, 3, 4, 5, 6].map((day) => ({
 }));
 const SUNDAY_OFF = [{ day: 0, start: "00:00", end: "00:00", off: true as const }];
 
-export const team: TeamMember[] = [
-  {
-    ...stylists[0],
-    role: "stylist",
-    phone: "+255 754 221 101",
-    email: "sarah@salon.co.tz",
-    serviceIds: ["hair-braiding", "box-braids", "silk-press", "locs", "haircut", "everyday-glam", "occasion-makeup", "bridal-makeup", "deep-conditioning"],
-    hours: [...WEEKDAY_HOURS, ...SUNDAY_OFF],
-    breakStart: "12:00",
-    breakEnd: "13:00",
-    active: true,
-  },
-  {
-    ...stylists[1],
-    role: "stylist",
-    phone: "+255 754 221 102",
-    email: "amina@salon.co.tz",
-    serviceIds: ["hair-braiding", "box-braids", "silk-press", "locs", "haircut", "deep-conditioning"],
-    hours: [...WEEKDAY_HOURS, ...SUNDAY_OFF],
-    breakStart: "12:00",
-    breakEnd: "13:00",
-    active: true,
-  },
-  {
-    ...stylists[2],
-    role: "stylist",
-    phone: "+255 754 221 103",
-    email: "grace@salon.co.tz",
-    serviceIds: ["gel-manicure", "acrylic-set", "pedicure"],
-    hours: [...WEEKDAY_HOURS, ...SUNDAY_OFF],
-    breakStart: "12:00",
-    breakEnd: "13:00",
-    active: true,
-  },
-  {
-    id: "zahra",
-    name: "Zahra",
-    title: "Reception",
-    bio: "The floor, the phone, the queue. Zahra keeps the day moving.",
-    specialties: ["hair", "nails", "makeup", "treatments"],
-    initials: "Z",
-    rating: 5,
-    role: "receptionist",
-    phone: "+255 754 221 104",
-    email: "zahra@salon.co.tz",
-    serviceIds: [],
-    hours: [...WEEKDAY_HOURS, ...SUNDAY_OFF],
-    active: true,
-  },
-  {
-    id: "lewis",
-    name: "Lewis",
-    title: "Owner",
-    bio: "Salon. The salon is named for him, and he still knows every regular by name.",
-    specialties: ["hair", "nails", "makeup", "treatments"],
-    initials: "L",
-    rating: 5,
-    role: "admin",
-    phone: "+255 754 221 088",
-    email: "gadnahery7@gmail.com",
-    serviceIds: services.map((s) => s.id),
-    hours: [...WEEKDAY_HOURS, ...SUNDAY_OFF],
-    active: true,
-  },
-];
+export const team: TeamMember[] = [];
 
 let liveServices: Service[] = services;
 let liveTeam: TeamMember[] = team;

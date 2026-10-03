@@ -25,26 +25,27 @@
 }
 
 :root[data-theme="ivory"] {
-  --bg: #f6f6f5;
-  --surface: #ffffff;
-  --surface-2: #efefee;
-  --ink: #0a0a0a;
-  --muted: #6b6b6b;
-  --line: #e3e3e1;
+  /* Warm cream — not pure white */
+  --bg: #f3efe6;
+  --surface: #faf6ee;
+  --surface-2: #ebe4d6;
+  --ink: #1c1917;
+  --muted: #78716c;
+  --line: #e0d7c8;
   --silver: #8e9298;
   --silver-hi: #f2f4f7;
   --silver-lo: #5f636a;
-  --brand: #0a0a0a;
-  --brand-ink: #ffffff;
-  --brand-soft: #ededec;
-  --accent-soft: #ededec;
+  --brand: #1c1917;
+  --brand-ink: #faf6ee;
+  --brand-soft: #ebe4d6;
+  --accent-soft: #ebe4d6;
   --success: #2f7a5e;
   --warning: #a97a2c;
   --danger: #b4443a;
-  --glass-nav: rgba(246, 246, 245, 0.88);
-  --glass-chip: rgba(255, 255, 255, 0.9);
-  --glass-bar: rgba(246, 246, 245, 0.9);
-  --shadow-rgb: 24, 23, 22;
+  --glass-nav: rgba(243, 239, 230, 0.9);
+  --glass-chip: rgba(250, 246, 238, 0.92);
+  --glass-bar: rgba(243, 239, 230, 0.92);
+  --shadow-rgb: 28, 25, 23;
 }
 
 :root {
@@ -168,6 +169,7 @@
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
+  .rounded-photo { border-radius: 28px; }
   .photo-outline {
     outline: 1px solid rgba(201, 204, 209, 0.18);
     outline-offset: -1px;

@@ -26,7 +26,7 @@ export function Photo({
   if (!src || failed) {
     return (
       <div
-        className={cn("relative overflow-hidden bg-brand-soft", className)}
+        className={cn("relative overflow-hidden rounded-[28px] bg-brand-soft", className)}
         aria-label={alt || "Image"}
       />
     );

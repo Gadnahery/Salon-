@@ -243,7 +243,7 @@ export const useSalonStore = create<SalonState>()(
       reviews: [],
       offers: [],
       audit: [],
-      staffStatus: { amina: "available", sarah: "available", grace: "busy", zahra: "available", lewis: "available" },
+      staffStatus: {},
       catalog: catalogSeed,
       team: teamSeed,
       timeOff: [],
@@ -260,7 +260,8 @@ export const useSalonStore = create<SalonState>()(
         const state = get();
         // No mock appointments/customers/payments — only keep catalog/team from remote hydrate or empty.
         const catalog = state.catalog;
-        const team = state.team;
+        const SEED_STAFF_IDS = new Set(["sarah", "amina", "grace", "zahra", "lewis"]);
+        const team = (state.team || []).filter((m) => !SEED_STAFF_IDS.has(m.id));
         applyLive(catalog, team);
         if (state.seeded) return;
         set({
@@ -274,6 +275,7 @@ export const useSalonStore = create<SalonState>()(
           queue: [],
           catalog,
           team,
+          staffStatus: {},
           galleryItems: state.galleryItems ?? [],
           templates: defaultTemplates,
           settings: state.settings ?? defaultSettings,
@@ -368,6 +370,15 @@ export const useSalonStore = create<SalonState>()(
               audience: "staff" as const,
             },
             {
+              id: `n-nba-${id}`,
+              title: "New booking request",
+              body: `${appt.customerName} requested ${service.name} on ${appt.date} at ${appt.time}. You can accept in Admin → Bookings.`,
+              time: new Date().toISOString(),
+              read: false,
+              appointmentId: id,
+              audience: "admin" as const,
+            },
+            {
               id: `n-nbc-${id}`,
               title: "Request sent",
               body: "Waiting for the salon to confirm your time. You will pay after confirmation.",
@@ -400,7 +411,7 @@ export const useSalonStore = create<SalonState>()(
               data: {
                 title: "New booking request",
                 body: `${appt.customerName} · ${service.name} · ${appt.date} ${appt.time}`,
-                url: `/staff/appointments/${id}`,
+                url: `/admin/bookings`,
                 tag: `req-${id}`,
                 audience: "both",
               },
